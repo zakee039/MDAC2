@@ -1,0 +1,11 @@
+{
+  "schema_version": 1,
+  "current_model": "v1",
+  "models": {
+    "v1": {
+      "manifest": "models/v1/manifest.json",
+      "application_version": "0.1.0",
+      "status": "user_selected_playtest_baseline"
+    }
+  }
+}

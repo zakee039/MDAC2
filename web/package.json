@@ -1,0 +1,28 @@
+{
+  "name": "mdac2-web",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "engines": {
+    "node": "24.14.x",
+    "npm": "11.9.x"
+  },
+  "packageManager": "npm@11.9.0",
+  "scripts": {
+    "dev": "vite --host 127.0.0.1",
+    "typecheck": "vue-tsc --noEmit",
+    "test": "node --experimental-strip-types --test tests/*.test.mjs",
+    "build": "npm run typecheck && vite build",
+    "preview": "vite preview --host 127.0.0.1"
+  },
+  "dependencies": {
+    "vue": "3.5.42",
+    "wavesurfer.js": "7.12.12"
+  },
+  "devDependencies": {
+    "@vitejs/plugin-vue": "6.0.9",
+    "typescript": "5.9.3",
+    "vite": "8.3.0",
+    "vue-tsc": "3.3.11"
+  }
+}

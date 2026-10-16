@@ -1,0 +1,40 @@
+{
+  "schema_version": 1,
+  "python": "tools/.deps/beat-this-py313/Scripts/python.exe",
+  "weights_root": "tools/private/beat-this",
+  "dependencies": {
+    "beat-this": "1.1.0",
+    "torch": "2.14.0+cpu",
+    "torchaudio": "2.11.0+cpu",
+    "numpy": "2.5.3",
+    "soxr": "1.1.0",
+    "einops": "0.8.2",
+    "rotary-embedding-torch": "0.9.1"
+  },
+  "models": [
+    {
+      "model_id": "final0",
+      "relative_path": "final0.ckpt",
+      "sha256": "8c328b45f59d8dd3dff219253ff6a8d6482be57d0133a29140e2febbf8eb8331",
+      "byte_count": 81058141,
+      "source": "https://cloud.cp.jku.at/public.php/dav/files/7ik4RrBKTS273gp/final0.ckpt",
+      "license_id": "MIT",
+      "allowed_uses": [
+        "inference"
+      ],
+      "license_source": "https://github.com/CPJKU/beat_this#license"
+    },
+    {
+      "model_id": "small0",
+      "relative_path": "small0.ckpt",
+      "sha256": "6074be2c4d490c5f6101fcc374a1ec72ae93456e23bb6019783b849f5dc7d47b",
+      "byte_count": 8451101,
+      "source": "https://cloud.cp.jku.at/public.php/dav/files/7ik4RrBKTS273gp/small0.ckpt",
+      "license_id": "MIT",
+      "allowed_uses": [
+        "inference"
+      ],
+      "license_source": "https://github.com/CPJKU/beat_this#license"
+    }
+  ]
+}

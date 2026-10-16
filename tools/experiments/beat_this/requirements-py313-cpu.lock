@@ -1,0 +1,20 @@
+beat-this @ file:///E:/project/MDAC2/tools/private/beat-this/beat_this-1.1.0-py3-none-any.whl#sha256=3f2b2d1e027c6dac380bf80c71555e3c28a4036a7f1af20129a945915a72a645
+decorator==5.3.1
+einops==0.8.2
+filelock==4.0.1
+fsspec==2026.9.0
+Jinja2==3.1.6
+MarkupSafe==3.0.3
+mir_eval==0.8.2
+mpmath==1.3.0
+networkx==3.6.1
+numpy==2.5.3
+psutil==7.2.2
+rotary-embedding-torch==0.9.1
+scipy==1.18.1
+setuptools==84.0.0
+soxr==1.1.0
+sympy==1.14.0
+torch @ file:///D:/TORCH/torch-cpu/torch-2.14.0%2Bcpu-cp313-cp313-win_amd64.whl#sha256=f2ffdacd95d7090a8bdfa8426f5d1557625874b19a96ba23a41f640d4a0c9c28
+torchaudio @ file:///D:/TORCH/torch-cpu/torchaudio-2.11.0%2Bcpu-cp313-cp313-win_amd64.whl#sha256=fa0c22f58f60c3537b7d28ed2501e0995acb2a65d9af2708f21edaad67186cd8
+typing_extensions==4.16.0

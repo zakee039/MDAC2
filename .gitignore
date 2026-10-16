@@ -1,0 +1,21 @@
+.venv/
+__pycache__/
+*.py[cod]
+*.egg-info/
+.pytest_cache/
+build/
+dist/
+runtime/
+.env
+.env.*
+!.env.example
+web/node_modules/
+web/dist/
+tools/.deps/
+tools/private/
+
+/tools/.browser-test/
+/runtime/
+
+# Local model checkpoints; version their identity through manifests.
+models/**/weights/

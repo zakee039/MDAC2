@@ -1,0 +1,18 @@
+* MDAC2 synthetic fixture; format evidence only, no game validation
+#PLAYER 3
+#GENRE scene_01
+#TITLE MDAC2 fixture
+#ARTIST MDAC2
+#LEVELDESIGN MDAC2
+#BPM 120
+#PLAYLEVEL 1
+#RANK 1
+#LNTYPE 1
+#WAV01 Small
+#WAV0E Gemini
+#WAV0F Hold
+#WAV10 music.ogg
+#00001:10
+#00013:00010E00
+#00014:01000E00
+#00154:0F000F00

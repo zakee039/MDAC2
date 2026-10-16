@@ -1,0 +1,28 @@
+antlr4-python3-runtime==4.9.3
+cloudpickle==3.1.2
+colorama==0.4.6
+demucs==4.0.1
+dora_search==0.1.13
+einops==0.8.2
+filelock==4.0.3
+fsspec==2026.9.0
+Jinja2==3.1.6
+julius==0.2.8
+lameenc==1.8.4
+MarkupSafe==3.0.3
+mpmath==1.3.0
+networkx==3.7
+numpy==2.3.3
+omegaconf==2.3.1
+openunmix==1.3.0
+psutil==7.2.2
+PyYAML==6.0.3
+retrying==1.4.2
+setuptools==84.0.0
+submitit==1.5.4
+sympy==1.14.0
+torch @ file:///D:/TORCH/torch-cpu/torch-2.14.0%2Bcpu-cp313-cp313-win_amd64.whl#sha256=f2ffdacd95d7090a8bdfa8426f5d1557625874b19a96ba23a41f640d4a0c9c28
+torchaudio @ file:///D:/TORCH/torch-cpu/torchaudio-2.11.0%2Bcpu-cp313-cp313-win_amd64.whl#sha256=fa0c22f58f60c3537b7d28ed2501e0995acb2a65d9af2708f21edaad67186cd8
+tqdm==4.70.1
+treetable==0.2.6
+typing_extensions==4.16.0

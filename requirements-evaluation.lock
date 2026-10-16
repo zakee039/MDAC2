@@ -1,0 +1,5 @@
+# Optional standard metrics; CPython 3.12 / Windows, verified 2026-09-24.
+mir_eval==0.8.2
+numpy==2.2.6
+scipy==1.15.3
+decorator==5.3.1

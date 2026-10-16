@@ -1,0 +1,2 @@
+# Preserve source bytes: existing model checkpoints bind exact training-source SHA256.
+* -text
