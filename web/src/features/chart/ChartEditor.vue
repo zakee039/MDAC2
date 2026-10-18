@@ -36,7 +36,7 @@ function select(note:Note){selected.value=note.event_id;q.value=note.q;duration.
       <path d="M0 35H600 M0 85H600 M300 0V120" stroke="currentColor" />
       <g v-for="item in overlay" :key="item.note.event_id">
         <template v-for="physical in item.note.lane_mask" :key="physical">
-          <rect :x="300+(item.start-position)*140" :y="physical==='air'?25:75" :width="Math.max(8,(item.end-item.start)*140)" height="20" :fill="item.note.locked?'#d6a84b':'#899dff'" />
+          <rect :x="300+(item.start-position)*140" :y="physical==='air'?25:75" :width="Math.max(8,(item.end-item.start)*140)" height="20" :fill="item.note.locked?'#b88635':'#32977c'" />
         </template>
       </g>
     </svg>

@@ -1,0 +1,43 @@
+{
+  "v2_directory_unchanged": true,
+  "v2_file_hashes": {
+    "models\\v2\\manifest.json": "9ae31c1894420492e4eae64cf88989d3f199523d00b78dbc7801c30642896562",
+    "models\\v2\\README.md": "11bc8060c734ef9000ab819f84db82f0622c0b5147d45a831960a5018a821116",
+    "models\\v2\\source\\build_playtest_comparison.py": "b019ce97658550619573e12d856a99e7ef85ea753f5d27792ebf67a923913ba6",
+    "models\\v2\\source\\playtest_postprocess.py": "3125f59265388173138c025e88b4ded1e5cdbd033ef70584b9f72be7972f67e0",
+    "models\\v2\\source\\refine_model_v1_playtest.py": "8450d6a612e2663068f4b8aac20334678df6d6ced41976998fcc03bd1de0acad",
+    "models\\v2\\weights\\arrangement.pt": "426c1e6a358050a8bcf716638b553a3c1dbe2b42761fbd0c48ccf364a31853d5",
+    "models\\v2\\weights\\onset.pt": "bf4b4bd0b33fea90b9f9f4606127ea1d0cf0a4bbd2bea31d153953f81e5d8d50",
+    "models\\v2\\weights\\run-prior.json": "6a27352cb2c0f9d6fc97f8f06d5742274d8c959a9fd5863fffad96568b875558"
+  },
+  "parent_packages_unchanged": true,
+  "manifest_sha256": "e5afe3ad1fe4d12b4558672b66393975d75f3a785b1b1e68f939f04e6d0e795c",
+  "packages": [
+    {
+      "song": "琵琶行",
+      "delivery": "E:\\OneDrive - stu.sau.edu.cn\\MuseDash\\Custom_Albums\\琵琶行_mikee_MDAC2试玩_V3.mdm",
+      "sha256": "baff063d10c1cfa8b4aeb568ebb9bf1889cff1496d89d026c55e2f828df49d96",
+      "parent_sha256": "0aa62158edb94c0f0992041ae9b625aa32f3e9482b56cfbae109c6fec4585f1e",
+      "events": 757,
+      "chart_and_audio_unchanged": true,
+      "only_display_titles_changed": true,
+      "game_verified": false,
+      "human_listening": "pending_for_this_strict_revision"
+    },
+    {
+      "song": "Snow Song Show",
+      "delivery": "E:\\OneDrive - stu.sau.edu.cn\\MuseDash\\Custom_Albums\\Snow Song Show_mikee_MDAC2试玩_V3.mdm",
+      "sha256": "cae76878ef06556ff3f64edd8e181281f70615002617d9fcc2d2c797a28b33a7",
+      "parent_sha256": "87476a20c0a8625f6b583c60f8aa919e5504651183346047f9e9ff6a754b7a45",
+      "events": 1142,
+      "chart_and_audio_unchanged": true,
+      "only_display_titles_changed": true,
+      "game_verified": false,
+      "human_listening": "pending_for_this_strict_revision"
+    }
+  ],
+  "command": [
+    "E:\\project\\MDAC2\\.venv\\Scripts\\python.exe",
+    "tools/freeze_model_v3.py"
+  ]
+}

@@ -1,0 +1,122 @@
+{
+  "schema_version": 1,
+  "model_id": "v2",
+  "product": "MDAC2",
+  "application_version": "0.1.0",
+  "release_date": "2026-10-16",
+  "status": "user_selected_playtest_baseline",
+  "checkpoints": {
+    "onset": {
+      "path": "models/v2/weights/onset.pt",
+      "sha256": "bf4b4bd0b33fea90b9f9f4606127ea1d0cf0a4bbd2bea31d153953f81e5d8d50",
+      "bytes": 40048515,
+      "source_experiment": "supervised-dual-v1-20260928",
+      "source_best_epoch": 3,
+      "parameters": 3331074,
+      "architecture": "vocals-accompaniment-onset-v1"
+    },
+    "arrangement": {
+      "path": "models/v2/weights/arrangement.pt",
+      "sha256": "426c1e6a358050a8bcf716638b553a3c1dbe2b42761fbd0c48ccf364a31853d5",
+      "bytes": 132008058,
+      "source_experiment": "supervised-dual-v6-20260930",
+      "source_best_epoch": 18,
+      "parameters": 10993122,
+      "architecture": "mix-bigru512-causal-history256-v6"
+    }
+  },
+  "checkpoint_format": "original-training-checkpoint-with-model-state",
+  "inference": {
+    "onset_threshold": 0.3,
+    "onset_streams": [
+      "vocals",
+      "accompaniment"
+    ],
+    "arrangement_streams": [
+      "mix"
+    ],
+    "separator": "fixed-pretrained-weights; not retrained",
+    "feature_hop_seconds": 0.01,
+    "bpm": false,
+    "beat_grid": false,
+    "empty_gap_fill": false,
+    "gear_postprocessing": false,
+    "generated_history": true,
+    "reference_history_input": false
+  },
+  "validation": {
+    "dataset_manifest_sha256": "34add12c1c47fc99afc04ae1fa9f06e968d5c2c50db41cb32a047f033668eb71",
+    "train_charts": 172,
+    "validation_charts": 22,
+    "previously_used_test_charts": 25,
+    "quarantined_charts": 127,
+    "actual_onset_five_class_macro_f1": 0.12881308686780116,
+    "actual_onset_five_class_micro_f1": 0.2441589520750677,
+    "actual_onset_hold_joint_f1": 0.01968951154865581,
+    "objective_quality": "Postprocessing improves structural statistics, not overall reference accuracy; reused validation, not independent test"
+  },
+  "human_feedback": {
+    "scope": "Pipa Xing r1.1 positive real-play feedback; Snow Song Show has unspecified odd points, deferred",
+    "user_quote": "这版琵琶行玩起来真人感真不错，snow song show有点奇怪的点，但可能是特例，后续再说",
+    "automated_game_verification": false,
+    "broad_game_acceptance": false
+  },
+  "version_note": "Release v2 = unchanged v1 neural weights + frozen playtest-postprocess-r1.1. Not historical training experiment v2.",
+  "weight_distribution": "Local frozen weights are excluded from Git; manifest and source code are versioned. No music or training materials are included.",
+  "created_at": "2026-10-16T23:31:05.327956+08:00",
+  "parent_model": "v1",
+  "postprocessing": {
+    "policy": {
+      "version": "playtest-postprocess-r1.1",
+      "phrase_gap": 0.65,
+      "prior_weight": 1.0,
+      "flip_cost": 0.7,
+      "alternation_cost": 0.65,
+      "tail_extension": 0.25,
+      "climax_min_seconds": 6.0,
+      "candidate_threshold": 0.2,
+      "candidate_spacing": 0.1,
+      "added_fraction": 0.15,
+      "similarity_threshold": 0.82,
+      "repeat_match_seconds": 0.06,
+      "repeat_coverage": 0.8,
+      "max_seconds": 600.0
+    },
+    "prior_path": "models/v2/weights/run-prior.json",
+    "prior_sha256": "6a27352cb2c0f9d6fc97f8f06d5742274d8c959a9fd5863fffad96568b875558",
+    "sources": {
+      "src/mdac2/data_preparation/playtest_postprocess.py": {
+        "snapshot": "models/v2/source/playtest_postprocess.py",
+        "sha256": "3125f59265388173138c025e88b4ded1e5cdbd033ef70584b9f72be7972f67e0"
+      },
+      "tools/refine_model_v1_playtest.py": {
+        "snapshot": "models/v2/source/refine_model_v1_playtest.py",
+        "sha256": "8450d6a612e2663068f4b8aac20334678df6d6ced41976998fcc03bd1de0acad"
+      },
+      "tools/build_playtest_comparison.py": {
+        "snapshot": "models/v2/source/build_playtest_comparison.py",
+        "sha256": "b019ce97658550619573e12d856a99e7ef85ea753f5d27792ebf67a923913ba6"
+      }
+    },
+    "evidence": "tools/private/community/playability-postprocess-r1-20261016/completion-r1.1.json",
+    "evidence_sha256": "25f3b676b9dea67a732734e848e9d15fcbfe86a0388014879dddd6bbb98a8bfb"
+  },
+  "vocal_priority_experiment_included": false,
+  "desktop_default_pipeline_changed": false,
+  "playtests": [
+    {
+      "song": "琵琶行",
+      "sha256": "8673aeacc2f9e14624fff1d643203dd79743d329032c2e0c1bbf2cf6c6297df1",
+      "delivery": "E:\\下载\\琵琶行_mikee_MDAC2试玩_模型v2.mdm",
+      "byte_identical_to_approved_r1_1": true,
+      "internal_title_preserved": true
+    },
+    {
+      "song": "Snow Song Show",
+      "sha256": "eaf5dd9f453710b10d777d5fb2518328c5d24a6b69a6593bd161817bd7d3e27d",
+      "delivery": "E:\\下载\\Snow Song Show_mikee_MDAC2试玩_模型v2.mdm",
+      "byte_identical_to_approved_r1_1": true,
+      "internal_title_preserved": true
+    }
+  ]
+}

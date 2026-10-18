@@ -60,4 +60,3 @@ onBeforeUnmount(()=>{session.dispose();emit('busy',false)})
     </fieldset>
   </section>
 </template>
-<style scoped>fieldset{border:0;padding:0}label{display:block;margin:.4rem 0}button,input,select{font:inherit;padding:.3rem;margin:.2rem}table{width:100%;border-collapse:collapse}td,th{text-align:left;padding:.4rem;border-bottom:1px solid #555}details{max-height:16rem;overflow:auto}[role=alert]{color:#ffb4ac}</style>

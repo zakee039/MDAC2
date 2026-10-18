@@ -1,0 +1,21 @@
+{
+  "status": "open_diagnosed",
+  "recipe": "R1",
+  "date": "2026-10-17",
+  "latest_scope": {
+    "figure_1": "candidate_implemented: stable acoustic continuation; Snow tail 259.725; pending human feedback",
+    "figure_2": "deferred_by_user: 暂停进一步调查与修改，等待用户研究后恢复",
+    "inside_hold_click_spacing": "candidate_implemented: 505ms minimum, safe move/compatible merge; pending human feedback"
+  },
+  "user_feedback": [
+    "末段长条提前结束，声音仍持续",
+    "长条内部同轨note希望间距大于500ms，过密优先换轨或兼容合并",
+    "171–176秒交错长条影响游玩，请先查看现状"
+  ],
+  "diagnosis_path": "tools/private/community/r1-feedback-holds-20261017/diagnosis.json",
+  "diagnosis_sha256": "67e33d129b91fee30f718e07631e084ccb6f98c3542a0c8f8539033b440e5f4a",
+  "fixed_in_release": null,
+  "baseline_modified": false,
+  "candidate": "tools/private/community/hold-feedback-rc2-20261017",
+  "candidate_status": "engineering_passed_pending_listening_and_game"
+}

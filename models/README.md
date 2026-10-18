@@ -1,0 +1,15 @@
+# 模型基线与制谱方案
+
+当前用户选定基线：**V3**（2026-10-18）；应用版本 **v0.2.0**。V2与R1完整保留。
+
+- V3冻结当前人声柔性增强＋全局1ms严格避让方案，两份网络权重与V2相同，没有重训。清单见[v3/manifest.json](v3/manifest.json)，本地权重位于`models/v3/weights/`。
+- `registry.json.current_model=v3`；`current_recipe=null`表示使用V3自带默认方案，无R覆盖。R1仍明确依赖V2，不能自动叠加到V3。新监督制谱通过`tools/generate_current_playtest.py`读取`recipes/generation-defaults.json`。
+- 两份V3试玩包已放入指定Custom_Albums目录；仅替换修订1包的显示标题，事件与音频相同。V2目录/权重/源码/清单与旧包未改动。
+
+以下为历史V2/R1登记说明：
+
+- V 系列冻结模型基线及登记时的默认配置。V2 包含 V1 的采音／排键权重和编排 r1.1，不能称为裸网络。
+- R 系列冻结基于明确 V 版本的完整制谱方案，包括候选选择、共享及替换的后处理、时间网格和导出。R1 复用 V2 权重，未重训。
+- [registry.json](registry.json) 是唯一当前选择入口：`current_model` 为 `v2`，`current_recipe` 为 `R1`，清单分别位于 [V2](v2/manifest.json) 和 [R1](../recipes/R1/manifest.json)。schema 2 保留模型字段，新增独立方案字段；R1没有放入模型列表。
+
+登记与桌面默认流程接入分开：本轮保留已验证的版本化 CLI 入口，没有替换桌面默认生成。冻结版本不能热改；完整继承、替换和实验命名关系见 [版本规范](../设计/21-V系列与R系列版本规范.md)。

@@ -16,7 +16,7 @@ def error(status, code, message, *, retryable=False):
 
 class LocalBoundary:
     def __init__(self, app, *, token, hosts, public_static=False):
-        if type(token) is not str or not re.fullmatch(r"[A-Za-z0-9_-]{32,256}", token):
+        if token is not None and (type(token) is not str or not re.fullmatch(r"[A-Za-z0-9_-]{32,256}", token)):
             raise ValueError("Strong installation token required")
         self.app, self.token = app, token
         self.public_static = public_static
@@ -38,10 +38,10 @@ class LocalBoundary:
         origin = headers.get("origin")
         authorization = headers.get("authorization", "")
         invalid = any(len(headers.getlist(key)) > 1 for key in ("host", "origin", "authorization"))
-        if not local or invalid or host not in self.hosts or (origin is not None and origin not in self.origins):
+        if not local or invalid or host not in self.hosts or (origin is not None and origin not in self.origins) or headers.get('sec-fetch-site')=='cross-site':
             return await error(403, "LOCAL_ONLY", "Local trusted origin required")(scope, receive, send)
         public = self.public_static and scope['method'] in ('GET','HEAD') and (scope['path']=='/' or scope['path'].startswith('/assets/'))
-        if not public and not hmac.compare_digest(authorization.encode(), ("Bearer " + self.token).encode()):
+        if self.token is not None and not public and not hmac.compare_digest(authorization.encode(), ("Bearer " + self.token).encode()):
             return await error(401, "AUTH_REQUIRED", "Installation token required")(scope, receive, send)
         async def secured_send(message):
             if message["type"] == "http.response.start":

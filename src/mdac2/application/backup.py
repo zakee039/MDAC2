@@ -21,7 +21,7 @@ from mdac2.infrastructure.project_repository import RepositoryError
 
 _SCHEMA_TABLES = {'asset_schema', 'manual_schema', 'job_schema', 'job_event_schema', 'publication_schema'}
 _TABLES = {'projects','revisions','project_audio','revision_timing','jobs','runs','job_outbox',
-           'job_events','artifacts','artifact_inputs','run_outputs',*_SCHEMA_TABLES}
+           'job_events','artifacts','artifact_inputs','run_outputs','studio_projects','studio_attempts',*_SCHEMA_TABLES}
 
 
 def _connection(path):
@@ -130,7 +130,7 @@ def _verify_snapshot(root):
         if type(name) is not str or '\\' in name or name in expected:raise ValueError('Invalid backup path')
         parts=name.split('/')
         for part in parts:_name(part)
-        if parts[0] not in {'state.sqlite','store'}:raise ValueError('Unexpected backup file')
+        if parts[0] not in {'state.sqlite','store','studio'}:raise ValueError('Unexpected backup file')
         path=root.joinpath(*parts)
         for parent in (path,*path.parents):
             if parent==root:break
@@ -184,6 +184,9 @@ def backup_workspace(repository,store,target):
         tables=_check_database(snapshot)
         roots=_references(snapshot,tables)
         projects=[dict(r) for r in snapshot.execute('SELECT * FROM projects ORDER BY project_id')]
+        if 'studio_projects' in tables:
+            from mdac2.application.studio_backup import snapshot as studio_snapshot
+            studio_snapshot(snapshot,repository.database.absolute().parent,stage)
     finally:snapshot.close()
     destination=ArtifactStore(stage/'store')
     for identity,(kind,envelope) in _closure(store,roots).items():
@@ -211,6 +214,9 @@ def restore_workspace(backup,target):
     c=_connection(stage/'state.sqlite')
     try:
         tables=_check_database(c)
+        if 'studio_projects' in tables:
+            from mdac2.application.studio_backup import relocate
+            relocate(c,stage,target)
         if 'jobs' in tables:
             for row in c.execute('SELECT runs.snapshot FROM jobs JOIN runs ON jobs.current_run=runs.run_id').fetchall():
                 run=Run(**strict_json(row[0]))

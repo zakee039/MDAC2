@@ -1,0 +1,12 @@
+{
+  "status": "passed",
+  "before_registry_sha256": "241365d45d9356a78681ff3d25c0f1c643b7c44f0aa4af6ca9e471d83f930b52",
+  "base_manifest_unchanged": true,
+  "model_weights_unchanged": true,
+  "frozen_sources": 14,
+  "packages_byte_identical": true,
+  "manifest_sha256": "7fa440d87a3de4aa5bab8679a1c3c47af241c516db066dea85acfeeec4ecb1f7",
+  "historical_evidence_unchanged": true,
+  "new_training": false,
+  "new_inference": false
+}

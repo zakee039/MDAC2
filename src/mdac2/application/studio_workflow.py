@@ -1,0 +1,377 @@
+"""Persistent automatic projects, immutable attempts and one bounded worker."""
+import json
+import os
+from pathlib import Path
+import shutil
+import subprocess
+import threading
+import time
+from uuid import uuid4
+
+from mdac2.application.studio_metadata import clean,SCENES,MetadataLLM,MODEL_LEVELS,package_filename,cover_prompt
+from mdac2.data_preparation.audio_features import sha
+from mdac2.infrastructure.project_repository import RevisionConflict
+
+
+class StudioWorkflow:
+    def __init__(self,root,runtime,repository):
+        self.root=Path(root);self.runtime=Path(runtime);self.repository=repository
+        self.directory=self.runtime/'studio';self.directory.mkdir(parents=True,exist_ok=True)
+        self.llm=MetadataLLM(self.runtime/'llm-settings.json')
+        self.stop=threading.Event();self.thread=None;self.process=None;self.lease=None
+        self.preferences_lock=threading.RLock();self.folder_dialog_lock=threading.Lock()
+        self.timing_lock=threading.Lock();self.timing_project=None
+        with repository._connection() as c:
+            c.execute('CREATE TABLE IF NOT EXISTS studio_projects(project_id TEXT PRIMARY KEY REFERENCES projects(project_id), data TEXT NOT NULL)')
+            c.execute('CREATE TABLE IF NOT EXISTS studio_attempts(attempt_id TEXT PRIMARY KEY,project_id TEXT NOT NULL REFERENCES projects(project_id),data TEXT NOT NULL)')
+            c.commit()
+    def _read(self,c,pid):
+        row=c.execute('SELECT data FROM studio_projects WHERE project_id=?',(pid,)).fetchone()
+        if row is None:raise KeyError(pid)
+        data=json.loads(row[0])
+        return data
+    def _write(self,c,data):
+        c.execute('UPDATE studio_projects SET data=? WHERE project_id=?',(json.dumps(data),data['project_id']))
+    def list(self):
+        with self.repository._connection() as c:
+            data=[json.loads(r[0]) for r in c.execute('SELECT data FROM studio_projects')]
+            return sorted(data,key=lambda d:d['updated'],reverse=True)
+    def _project_folder(self,pid):
+        from uuid import UUID
+        from mdac2.infrastructure.artifact_store import _plain
+        if str(UUID(pid))!=pid:raise ValueError('Invalid project identity')
+        _plain(self.directory)
+        base=self.directory.resolve();folder=self.directory/pid
+        if folder.resolve().parent!=base:raise ValueError('Project path escapes studio')
+        if folder.exists():
+            _plain(folder)
+            for item in folder.rglob('*'):_plain(item)
+        return folder
+    def delete(self,pid,version):
+        if self.timing_project==pid:raise RevisionConflict('Timing analysis is running')
+        with self.repository._connection() as c:
+            c.execute('BEGIN IMMEDIATE');d=self._read(c,pid)
+            if d['version']!=version or d['active_attempt']:raise RevisionConflict('Project changed or busy')
+            folder=self._project_folder(pid)
+            # Verify all database constraints before touching project-owned files.
+            if any(c.execute(f'SELECT 1 FROM {table} WHERE project_id=?',(pid,)).fetchone() for table in ('jobs','revisions')):
+                raise ValueError('此项目存在其他工作流引用，不能删除')
+            c.execute('DELETE FROM studio_attempts WHERE project_id=?',(pid,))
+            c.execute('DELETE FROM studio_projects WHERE project_id=?',(pid,))
+            c.execute('DELETE FROM projects WHERE project_id=?',(pid,))
+            if folder.exists():shutil.rmtree(folder)
+            c.commit()
+        return dict(ok=True,project_id=pid)
+    def save_draft(self,pid,version,metadata,user_prompt=None,timing=None):
+        from mdac2.application.studio_timing import settings
+        if set(metadata)!={'title','author','creator','scene','model'}:raise ValueError('歌曲信息字段不完整')
+        draft={k:clean(v,empty=True) for k,v in metadata.items()}
+        if draft['scene'] not in SCENES or draft['model'] not in ('v2','v3'):raise ValueError('无效场景或模型')
+        if user_prompt is not None:user_prompt=cover_prompt(user_prompt)
+        if timing is not None:timing=settings(timing)
+        with self.repository._connection() as c:
+            c.execute('BEGIN IMMEDIATE');d=self._read(c,pid)
+            if d['version']!=version or d['active_attempt']:raise RevisionConflict('Project changed or busy')
+            d.update(draft=draft,version=version+1,updated=time.time())
+            if user_prompt is not None:d['cover_prompt']=user_prompt
+            if timing is not None:d['timing_draft']=timing
+            self._write(c,d);c.commit()
+        return self.get(pid)
+    def preferences(self,language=None,delivery_folder=None):
+        path=self.runtime/'preferences.json'
+        with self.preferences_lock:
+            data=json.loads(path.read_text(encoding='utf-8')) if path.exists() else dict(language='zh')
+            data.setdefault('delivery_folder','')
+            if language is not None:
+                if language not in ('zh','en','ja'):raise ValueError('Unsupported language')
+                data['language']=language
+            if delivery_folder is not None:
+                folder=Path(delivery_folder)
+                if not folder.is_absolute() or not folder.is_dir():raise ValueError('请选择已存在的游戏目录')
+                data['delivery_folder']=str(folder.resolve())
+            if language is not None or delivery_folder is not None:
+                temp=path.with_suffix('.tmp');temp.write_text(json.dumps(data),encoding='utf-8');os.replace(temp,path)
+            return data
+    def select_delivery_folder(self):
+        from mdac2.application.studio_folder import choose_folder
+        if not self.folder_dialog_lock.acquire(blocking=False):raise ValueError('目录选择窗口已打开')
+        try:
+            chosen=choose_folder()
+            return dict(cancelled=chosen is None,preferences=self.preferences(delivery_folder=chosen))
+        finally:self.folder_dialog_lock.release()
+    def get(self,pid):
+        with self.repository._connection() as c:
+            d=self._read(c,pid)
+            d['attempts']=[json.loads(r[0]) for r in c.execute('SELECT data FROM studio_attempts WHERE project_id=?',(pid,))]
+        for a in d['attempts']:
+            p=self.directory/pid/a['attempt_id']/'progress.json'
+            if p.exists():
+                try:a['progress']=json.loads(p.read_text(encoding='utf-8'))
+                except (OSError,ValueError):pass
+        return d
+    def models(self):
+        return [dict(id=m,label=m.upper(),difficulty=MODEL_LEVELS[m],available=(self.root/'models'/m/'manifest.json').is_file(),default=m=='v3') for m in ('v3','v2')]
+    def import_audio(self,path,filename):
+        from mdac2.application.studio_media import EXTENSIONS,prepare
+        filename=clean(filename);suffix=Path(filename).suffix.lower()
+        if '/' in filename or chr(92) in filename or suffix not in EXTENSIONS:raise ValueError('不支持的音频或视频格式')
+        pid=str(uuid4());dest=self.directory/pid;dest.mkdir()
+        source=dest/('source'+suffix)
+        try:
+            shutil.copyfile(path,source)
+            prepared=prepare(self.root,source,dest/'audio')
+        except Exception:
+            shutil.rmtree(self._project_folder(pid));raise
+        title=Path(filename).stem
+        d=dict(project_id=pid,version=1,filename=filename,source=str(source.resolve()),source_sha256=sha(source),
+            prepared_audio=prepared,metadata=dict(title=title,author='',creator='mikee',scene='scene_01',model='v3'),
+            confirmed=False,metadata_source='filename',suggestion=None,active_attempt=None,generation=None,export=None,
+            created=time.time(),updated=time.time())
+        with self.repository._connection() as c:
+            c.execute('BEGIN IMMEDIATE');c.execute('INSERT INTO projects(project_id,title) VALUES (?,?)',(pid,title))
+            c.execute('INSERT INTO studio_projects VALUES (?,?)',(pid,json.dumps(d)));c.commit()
+        return d
+    def generate_cover(self,pid,version,metadata,force=False,mode='llm',user_prompt=''):
+        from mdac2.application.studio_imagegen import generate,fallback
+        from mdac2.application.studio_cover import normalize
+        d=self.get(pid)
+        if d['version']!=version or d['active_attempt']:raise RevisionConflict('Project changed or busy')
+        if mode not in ('local','llm'):raise ValueError('请选择本地或LLM生成')
+        user_prompt=cover_prompt(user_prompt)
+        title=clean(metadata.get('title'));artist=clean(metadata.get('author',''),empty=True)
+        song=dict(title=title,author=artist);old=d.get('cover') or {}
+        if not force and old and mode=='llm' and (old['origin'] not in ('imagegen','local_text') or old.get('song')==song and old.get('user_prompt','')==user_prompt):return d
+        profile=self.llm.load('cover');detail=dict(song=song,shape='circle',user_prompt=user_prompt)
+        if mode=='local':return self.save_cover(pid,version,fallback(title,artist),origin='local_text',detail=detail)
+        try:
+            data,provenance=generate(self.root,profile,title,artist,user_prompt)
+            data=normalize(self.root,data);detail.update(provenance);origin='imagegen'
+        except (ValueError,OSError):
+            data=fallback(title,artist);origin='local_text'
+            detail['fallback_reason']='unconfigured' if not profile['id'] else 'generation_failed'
+        return self.save_cover(pid,version,data,origin=origin,detail=detail)
+    def save_cover(self,pid,version,data=None,*,origin='upload',crop=None,detail=None):
+        from mdac2.application.studio_cover import normalize
+        import hashlib
+        d=self.get(pid)
+        if d['version']!=version or d['active_attempt']:raise RevisionConflict('Project changed or busy')
+        folder=self.directory/pid/'covers';folder.mkdir(exist_ok=True)
+        if data is not None:original=normalize(self.root,data)
+        else:
+            if not d.get('cover'):raise ValueError('请先选择封面')
+            original=Path(d['cover']['original_path']).read_bytes()
+            if hashlib.sha256(original).hexdigest()!=d['cover']['original_sha256']:raise ValueError('封面校验失败')
+            origin=d['cover']['origin']
+            detail={k:d['cover'][k] for k in ('song','shape','profile_id','model','style','prompt_sha256','fallback_reason','user_prompt') if k in d['cover']}
+        crop=crop or dict(x=.5,y=.5,zoom=1)
+        rendered=normalize(self.root,original,crop)
+        if (detail or {}).get('shape')=='circle':
+            from mdac2.application.studio_imagegen import circle
+            rendered=circle(rendered)
+        def publish(content):
+            digest=hashlib.sha256(content).hexdigest();p=folder/(digest+'.png')
+            if not p.exists():p.write_bytes(content)
+            return str(p.resolve()),digest
+        original_path,original_sha=publish(original);path,digest=publish(rendered)
+        cover=dict(path=path,sha256=digest,original_path=original_path,original_sha256=original_sha,origin=origin,crop=crop)| (detail or {})
+        with self.repository._connection() as c:
+            c.execute('BEGIN IMMEDIATE');d=self._read(c,pid)
+            if d['version']!=version or d['active_attempt']:raise RevisionConflict('Project changed during cover update')
+            d.update(cover=cover,export=None,version=version+1,updated=time.time());self._write(c,d);c.commit()
+        return self.get(pid)
+    def cover_path(self,pid,original=False):
+        d=self.get(pid);cover=d.get('cover')
+        if not cover:raise KeyError('cover')
+        path=Path(cover['original_path' if original else 'path'])
+        if sha(path)!=cover['original_sha256' if original else 'sha256']:raise ValueError('封面校验失败')
+        return path
+    def audio_path(self,pid):
+        d=self.get(pid);prepared=d.get('prepared_audio')
+        if not prepared:raise ValueError('此旧项目没有导入音轨，请重新导入')
+        folder=Path(prepared['path']);record=folder/'audio.json'
+        if sha(record)!=prepared['record_sha256']:raise ValueError('音频记录校验失败')
+        info=json.loads(record.read_text(encoding='utf-8'));path=folder/'mix.wav'
+        if sha(path)!=info['wav_sha256']:raise ValueError('音频校验失败')
+        return path,info['wav_sha256']
+    def detect_timing(self,pid,version):
+        from mdac2.infrastructure.timing_models import TimingModels
+        d=self.get(pid)
+        if d['version']!=version or d['active_attempt']:raise RevisionConflict('Project changed or busy')
+        if not self.timing_lock.acquire(blocking=False):raise ValueError('已有测拍任务正在运行')
+        self.timing_project=pid
+        try:
+            try:python,_,_=TimingModels(self.root).configuration('final0')
+            except (ValueError,OSError,KeyError,StopIteration):raise ValueError('本地测拍模型不可用，请手打测拍或手动填写') from None
+            audio,digest=self.audio_path(pid)
+            folder=self.directory/pid/'timing'/str(uuid4());folder.mkdir(parents=True)
+            output=folder/'result.json'
+            with (folder/'worker.log').open('w',encoding='utf-8') as log:
+                try:
+                    subprocess.run([str(python),str(self.root/'tools/studio_detect_timing.py'),
+                        '--audio',str(audio),'--sha',digest,'--output',str(output)],cwd=self.root,stdout=log,stderr=log,
+                        timeout=180,check=True,creationflags=getattr(subprocess,'CREATE_NO_WINDOW',0),env={**os.environ,'PYTHONUTF8':'1'})
+                except subprocess.TimeoutExpired:raise ValueError('自动测拍超时，请使用手打测拍或手动填写') from None
+                except subprocess.CalledProcessError:raise ValueError('自动测拍失败或节拍不足，请使用手打测拍；诊断日志已保留') from None
+            result=json.loads(output.read_text(encoding='utf-8'))
+            with self.repository._connection() as c:
+                c.execute('BEGIN IMMEDIATE');d=self._read(c,pid)
+                if d['version']!=version or d['active_attempt']:raise RevisionConflict('Project changed during timing analysis')
+                d.update(timing_analysis=result,version=version+1,updated=time.time());self._write(c,d);c.commit()
+            return self.get(pid)
+        finally:self.timing_project=None;self.timing_lock.release()
+    def confirm(self,pid,version,metadata,timing=None):
+        from mdac2.application.studio_timing import settings
+        if set(metadata)!={'title','author','creator','scene','model'}:raise ValueError('歌曲信息字段不完整')
+        meta={k:clean(v,empty=k=='author') for k,v in metadata.items()}
+        if meta['scene'] not in SCENES or meta['model'] not in ('v2','v3'):raise ValueError('无效场景或模型')
+        with self.repository._connection() as c:
+            c.execute('BEGIN IMMEDIATE');d=self._read(c,pid)
+            if d['version']!=version or d['active_attempt']:raise RevisionConflict('Project changed or busy')
+            timing=settings(timing if timing is not None else d.get('timing'))
+            timing['subdivisions']=12
+            if meta!=d['metadata'] or timing!=settings(d.get('timing')):d.update(generation=None,export=None)
+            d.update(metadata=meta,timing=timing,timing_draft=None,draft=None,confirmed=True,version=version+1,updated=time.time())
+            self._write(c,d);c.execute('UPDATE projects SET title=? WHERE project_id=?',(meta['title'],pid));c.commit()
+        return d
+    def suggest(self,pid,version):
+        d=self.get(pid)
+        if d['version']!=version or d['active_attempt']:raise RevisionConflict('Project changed or busy')
+        suggestion=self.llm.suggest(Path(d['filename']).stem)
+        with self.repository._connection() as c:
+            c.execute('BEGIN IMMEDIATE');d=self._read(c,pid)
+            if d['version']!=version or d['active_attempt']:raise RevisionConflict('Project changed during LLM call')
+            d.update(suggestion=suggestion,version=version+1,updated=time.time())
+            # Suggestions are persisted separately, never overwrite confirmed edits.
+            self._write(c,d);c.commit()
+        return d
+    def enqueue(self,pid,version,operation):
+        if operation not in ('generate','export'):raise ValueError('不支持的操作')
+        with self.repository._connection() as c:
+            c.execute('BEGIN IMMEDIATE');d=self._read(c,pid)
+            if version!=d['version'] or d['active_attempt']:raise RevisionConflict('Project changed or already running')
+            if not d['confirmed'] or d.get('draft'):raise ValueError('请先确认歌曲信息')
+            if operation=='export' and not d['generation']:raise ValueError('请先完成制谱')
+            from mdac2.application.studio_timing import settings
+            timing=settings(d.get('timing'))
+            if operation=='generate' and timing['enabled'] and timing['subdivisions']!=12:
+                raise ValueError('请重新确认BPM设置，新的制谱使用每拍12等分')
+            attempt=str(uuid4());out=self.directory/pid/attempt;out.mkdir()
+            request=dict(operation=operation,metadata=d['metadata'],source=d['source'],source_sha256=d['source_sha256'],
+                cache=str((self.directory/'cache'/d['source_sha256']).resolve()),
+                gpu_lock=str((self.root/'runtime/studio-gpu.lock').resolve()),
+                model_manifest_sha256=sha(self.root/'models'/d['metadata']['model']/'manifest.json'))
+            request['timing']=timing
+            if d.get('prepared_audio'):request['prepared_audio']=d['prepared_audio']
+            if operation=='export':
+                request['generation']=str((self.directory/pid/d['generation']).resolve())
+                request['cover']=d.get('cover')
+            (out/'request.json').write_text(json.dumps(request,ensure_ascii=False,indent=2),encoding='utf-8')
+            a=dict(attempt_id=attempt,project_id=pid,operation=operation,state='queued',created=time.time(),message='排队等待',pid=None)
+            c.execute('INSERT INTO studio_attempts VALUES (?,?,?)',(attempt,pid,json.dumps(a)))
+            d.update(active_attempt=attempt,version=version+1,updated=time.time())
+            self._write(c,d);c.commit()
+        return a
+    def finish(self,a,state,message):
+        with self.repository._connection() as c:
+            c.execute('BEGIN IMMEDIATE');d=self._read(c,a['project_id'])
+            a.update(state=state,message=message,finished=time.time())
+            c.execute('UPDATE studio_attempts SET data=? WHERE attempt_id=?',(json.dumps(a),a['attempt_id']))
+            if d['active_attempt']==a['attempt_id']:
+                d.update(active_attempt=None,version=d['version']+1,updated=time.time())
+                if state=='succeeded':
+                    if a['operation']=='generate':d.update(generation=a['attempt_id'],export=None)
+                    else:d['export']=a['attempt_id']
+                self._write(c,d)
+            c.commit()
+    def cancel(self,pid):
+        d=self.get(pid)
+        if d['active_attempt']:(self.directory/pid/d['active_attempt']/'CANCEL').touch()
+        return dict(ok=True)
+    def package(self,pid):
+        d=self.get(pid)
+        if not d['export']:raise ValueError('尚无可导出的资源包')
+        path=self.directory/pid/d['export']/'chart.mdm';report=json.loads(path.with_name('result.json').read_text(encoding='utf-8'))
+        if sha(path)!=report['package_sha256']:raise ValueError('资源包校验失败，请重新导出')
+        return path,d
+    def deliver(self,pid):
+        path,d=self.package(pid)
+        selected=self.preferences()['delivery_folder']
+        if not selected:return dict(folder_required=True)
+        folder=Path(selected)
+        if not folder.is_dir():raise ValueError('已保存的游戏目录不可用，请在设置中重新选择')
+        dest=folder/package_filename(d['metadata'])
+        if dest.exists():
+            if sha(dest)!=sha(path):raise ValueError('同名导出已存在且内容不同')
+        else:
+            # Publish only a fully copied, verified file; never replace another chart.
+            import tempfile
+            temp=None
+            try:
+                with tempfile.NamedTemporaryFile(dir=folder,prefix='.mdac-',suffix='.tmp',delete=False) as f,path.open('rb') as src:
+                    temp=Path(f.name);shutil.copyfileobj(src,f)
+                if sha(temp)!=sha(path):raise ValueError('交付校验失败')
+                try:os.link(temp,dest)
+                except FileExistsError:
+                    if sha(dest)!=sha(path):raise ValueError('同名导出已存在且内容不同') from None
+            finally:
+                if temp is not None:temp.unlink(missing_ok=True)
+        if sha(dest)!=sha(path):raise ValueError('交付校验失败')
+        return dict(path=str(dest),sha256=sha(dest))
+    def start(self):
+        if os.name=='nt':
+            import msvcrt
+            self.lease=(self.directory/'runtime.lock').open('a+b')
+            if self.lease.seek(0,2)==0:self.lease.write(b'0');self.lease.flush()
+            self.lease.seek(0)
+            try:msvcrt.locking(self.lease.fileno(),msvcrt.LK_NBLCK,1)
+            except OSError:
+                self.lease.close();self.lease=None
+                raise RuntimeError('此项目目录已有工作台服务运行') from None
+        # Interrupted attempts retain artifacts and require an explicit retry.
+        with self.repository._connection() as c:
+            pending=[json.loads(r[0]) for r in c.execute('SELECT data FROM studio_attempts')]
+        for a in pending:
+            if a['state']=='running':self.finish(a,'interrupted','服务中断；保留原结果，可重试。旧进程如仍运行会由GPU锁阻止重复执行。')
+        self.thread=threading.Thread(target=self.loop,daemon=True);self.thread.start()
+    @staticmethod
+    def terminate(process):
+        if process.poll() is not None:return
+        if os.name=='nt':subprocess.run(['taskkill','/PID',str(process.pid),'/T','/F'],capture_output=True,creationflags=subprocess.CREATE_NO_WINDOW)
+        else:process.terminate()
+        process.wait(timeout=15)
+    def close(self):
+        self.stop.set()
+        if self.thread:self.thread.join(timeout=20)
+        if self.lease:self.lease.close();self.lease=None
+    def loop(self):
+        while not self.stop.is_set():
+            with self.repository._connection() as c:
+                queued=[json.loads(r[0]) for r in c.execute('SELECT data FROM studio_attempts') if json.loads(r[0])['state']=='queued']
+            if not queued:self.stop.wait(.5);continue
+            a=min(queued,key=lambda x:x['created']);out=self.directory/a['project_id']/a['attempt_id']
+            if (out/'CANCEL').exists():self.finish(a,'cancelled','已取消');continue
+            try:
+                with (out/'worker.log').open('w',encoding='utf-8') as log:
+                    process=subprocess.Popen([str(self.root/'tools/.deps/pretraining-py313/Scripts/python.exe'),
+                        str(self.root/'tools/studio_generate.py'),'--request',str((out/'request.json').resolve()),'--output',str(out.resolve())],
+                        cwd=self.root,stdout=log,stderr=log,creationflags=getattr(subprocess,'CREATE_NO_WINDOW',0),
+                        env={**os.environ,'PYTHONUTF8':'1'})
+                    self.process=process;a.update(state='running',pid=process.pid,message='正在处理')
+                    with self.repository._connection() as c:
+                        c.execute('UPDATE studio_attempts SET data=? WHERE attempt_id=?',(json.dumps(a),a['attempt_id']));c.commit()
+                    deadline=time.monotonic()+10800
+                    while process.poll() is None:
+                        if self.stop.is_set() or (out/'CANCEL').exists() or time.monotonic()>deadline:
+                            self.terminate(process);break
+                        self.stop.wait(.3)
+                    if self.stop.is_set():self.finish(a,'interrupted','服务已关闭，可重试')
+                    elif (out/'CANCEL').exists():self.finish(a,'cancelled','已取消，可重试')
+                    elif time.monotonic()>deadline:self.finish(a,'failed','处理超时，可重试')
+                    else:
+                        r=json.loads((out/'result.json').read_text(encoding='utf-8')) if (out/'result.json').exists() else {}
+                        ok=process.returncode==0 and r.get('status')=='succeeded'
+                        self.finish(a,'succeeded' if ok else 'failed','已完成' if ok else r.get('message','处理失败，请检查本机模型环境后重试'))
+            except Exception:
+                if self.process and self.process.poll() is None:self.terminate(self.process)
+                self.finish(a,'failed','后台任务启动或执行失败；详细诊断保留在本机任务目录')
+            finally:self.process=None

@@ -44,4 +44,8 @@ function seconds(id:string){try{return session.value.listen(id).map(v=>v.toFixed
   </fieldset>
  </section>
 </template>
-<style scoped>fieldset{border:0;padding:0}label{display:block;margin:.4rem 0}button,input,select{font:inherit;padding:.3rem;margin:.2rem}.primary{border-left:4px solid #68b8ef}.target{border-left:4px solid #e4b96b}li,article{padding:.5rem;margin:.5rem 0}[role=alert]{color:#ffb4ac}</style>
+<style scoped>
+.primary { border-left: 4px solid #28876e; background: #eef7f1; color: #314f3c; }
+.target { border-left: 4px solid #c19a49; }
+li, article { padding: 12px; margin: 12px 0; }
+</style>

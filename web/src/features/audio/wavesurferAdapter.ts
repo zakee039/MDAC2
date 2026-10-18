@@ -8,10 +8,10 @@ export function wavesurferFactory(container: HTMLElement): WaveformFactory {
     const regions = Regions.create()
     const waveform = WaveSurfer.create({ container, media: options.media, peaks: options.peaks,
       duration: options.duration, height: 100, interact: false, dragToSeek: false, autoplay: false,
-      waveColor: '#9daaf0', progressColor: '#9daaf0', cursorWidth: 0, plugins: [regions] })
+      waveColor: '#80b9a6', progressColor: '#28876e', cursorWidth: 0, plugins: [regions] })
     const cursor = document.createElement('div')
     cursor.setAttribute('aria-hidden', 'true')
-    cursor.style.cssText = 'position:absolute;top:0;bottom:0;width:2px;background:#fbbf24;pointer-events:none;z-index:5'
+    cursor.style.cssText = 'position:absolute;top:0;bottom:0;width:2px;background:#b88635;pointer-events:none;z-index:5'
     container.style.position = 'relative'
     container.append(cursor)
     const click = (event: MouseEvent) => {
@@ -31,7 +31,7 @@ export function wavesurferFactory(container: HTMLElement): WaveformFactory {
         updating = true
         try {
           regions.clearRegions()
-          for (const region of items) regions.addRegion({ ...region, drag: true, resize: true, color: '#818cf844' })
+          for (const region of items) regions.addRegion({ ...region, drag: true, resize: true, color: '#6cac8644' })
         } finally { updating = false }
       },
       destroy() {

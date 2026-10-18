@@ -23,10 +23,12 @@ from mdac2.application.onset_workflow import OnsetWorkflow
 from mdac2.api.onsets import attach_onsets
 from mdac2.application.structure_workflow import StructureWorkflow
 from mdac2.api.structure import attach_structure
+from mdac2.application.studio_workflow import StudioWorkflow
+from mdac2.api.studio import attach_studio
 
 
-def build_app(root,token,port=8000,*,runtime_root=None):
-    root=Path(root).absolute();runtime=Path(runtime_root) if runtime_root else root/'runtime'
+def build_app(root,token=None,port=8000,*,runtime_root=None):
+    root=Path(root).absolute();runtime=Path(runtime_root) if runtime_root else root/'chart'
     backend=JobBackend(runtime/'state.sqlite');store=ArtifactStore(runtime/'store')
     binary=root/'tools/.deps/ffmpeg/extracted/ffmpeg-9.0.1-essentials_build/bin'
     decoder=AudioDecoder(binary/'ffmpeg.exe',binary/'ffprobe.exe')
@@ -39,11 +41,15 @@ def build_app(root,token,port=8000,*,runtime_root=None):
     attach_onsets(app,OnsetWorkflow(workflow),backend)
     attach_structure(app,StructureWorkflow(workflow),backend)
     attach_export(app,workflow,backend,store,decoder)
+    studio=StudioWorkflow(root,runtime,backend);attach_studio(app,studio)
     @asynccontextmanager
     async def lifespan(app):
-        worker.start()
-        try:yield
-        finally:worker.close()
+        studio.start()
+        try:
+            worker.start()
+            try:yield
+            finally:worker.close()
+        finally:studio.close()
     app.router.lifespan_context=lifespan
     @app.get('/')
     def index():return FileResponse(root/'web/dist/index.html')
@@ -55,9 +61,8 @@ def main():
     import uvicorn
     parser=argparse.ArgumentParser();parser.add_argument('--root',default='.');parser.add_argument('--port',type=int,default=8000);parser.add_argument('--runtime')
     args=parser.parse_args()
-    token=os.environ.get('MDAC2_TOKEN') or secrets.token_urlsafe(32)
-    app=build_app(args.root,token,args.port,runtime_root=args.runtime)
-    print(f'Open http://127.0.0.1:{args.port} ; installation token (this session only): {token}',flush=True)
+    app=build_app(args.root,None,args.port,runtime_root=args.runtime)
+    print(f'Open http://127.0.0.1:{args.port} ; projects: {app.state.studio.runtime}',flush=True)
     uvicorn.run(app,host='127.0.0.1',port=args.port,access_log=False)
 
 

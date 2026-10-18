@@ -1,0 +1,2286 @@
+{
+  "charts": [
+    {
+      "name": "validation/209d95b19b415789abc7e2232e3ed2b9d98e33860329c7c25cb99a764fbeb65c",
+      "previous_events": 876,
+      "events": 873,
+      "removed_ids": [
+        "dual-85-0",
+        "dual-88-0",
+        "dual-89-0"
+      ],
+      "added_ids": [],
+      "moved": 19,
+      "dropped": [
+        {
+          "event_ids": [
+            "dual-85-0"
+          ],
+          "time": 15.724,
+          "reason": "both_lanes_guarded",
+          "blockers": []
+        },
+        {
+          "event_ids": [
+            "dual-88-0"
+          ],
+          "time": 16.415,
+          "reason": "both_lanes_guarded",
+          "blockers": []
+        },
+        {
+          "event_ids": [
+            "dual-89-0"
+          ],
+          "time": 16.614,
+          "reason": "both_lanes_guarded",
+          "blockers": []
+        }
+      ],
+      "exclusive_initial": {
+        "edits": [],
+        "dropped": [],
+        "nearby_seconds": 0.02,
+        "hold_resume": false
+      },
+      "exclusive_final": {
+        "edits": [],
+        "dropped": [],
+        "nearby_seconds": 0.02,
+        "hold_resume": false
+      },
+      "violations": [],
+      "dense_pairs": [],
+      "gemini_to_single": 1,
+      "double_to_single": 0
+    },
+    {
+      "name": "validation/a53f6039bad01c1663c548c5f02fb26132fe73a9088dbdb58becc1da0b73cfbc",
+      "previous_events": 1211,
+      "events": 1210,
+      "removed_ids": [
+        "dual-538-0"
+      ],
+      "added_ids": [],
+      "moved": 44,
+      "dropped": [
+        {
+          "event_ids": [
+            "dual-538-0"
+          ],
+          "time": 109.724,
+          "reason": "both_lanes_guarded",
+          "blockers": []
+        }
+      ],
+      "exclusive_initial": {
+        "edits": [],
+        "dropped": [],
+        "nearby_seconds": 0.02,
+        "hold_resume": false
+      },
+      "exclusive_final": {
+        "edits": [],
+        "dropped": [],
+        "nearby_seconds": 0.02,
+        "hold_resume": false
+      },
+      "violations": [],
+      "dense_pairs": [],
+      "gemini_to_single": 7,
+      "double_to_single": 0
+    },
+    {
+      "name": "validation/eef309506992491e475f67d6e07d2e97691a06d4e8213e3194619bf9d1598a47",
+      "previous_events": 1074,
+      "events": 1068,
+      "removed_ids": [
+        "dual-1007-0",
+        "dual-1008-0",
+        "dual-1009-0",
+        "dual-272-0",
+        "dual-45-0",
+        "dual-48-0"
+      ],
+      "added_ids": [],
+      "moved": 72,
+      "dropped": [
+        {
+          "event_ids": [
+            "dual-45-0"
+          ],
+          "time": 20.384,
+          "reason": "both_lanes_guarded",
+          "blockers": []
+        },
+        {
+          "event_ids": [
+            "dual-48-0"
+          ],
+          "time": 21.774,
+          "reason": "both_lanes_guarded",
+          "blockers": []
+        },
+        {
+          "event_ids": [
+            "dual-272-0"
+          ],
+          "time": 63.773,
+          "reason": "both_lanes_guarded",
+          "blockers": []
+        },
+        {
+          "event_ids": [
+            "dual-1007-0"
+          ],
+          "time": 244.234,
+          "reason": "both_lanes_guarded",
+          "blockers": []
+        },
+        {
+          "event_ids": [
+            "dual-1008-0"
+          ],
+          "time": 244.464,
+          "reason": "both_lanes_guarded",
+          "blockers": []
+        },
+        {
+          "event_ids": [
+            "dual-1009-0"
+          ],
+          "time": 244.694,
+          "reason": "both_lanes_guarded",
+          "blockers": []
+        }
+      ],
+      "exclusive_initial": {
+        "edits": [],
+        "dropped": [],
+        "nearby_seconds": 0.02,
+        "hold_resume": false
+      },
+      "exclusive_final": {
+        "edits": [],
+        "dropped": [],
+        "nearby_seconds": 0.02,
+        "hold_resume": false
+      },
+      "violations": [],
+      "dense_pairs": [],
+      "gemini_to_single": 7,
+      "double_to_single": 0
+    },
+    {
+      "name": "validation/8b01f83001cd8790786b0c527e77ded71b816ab7b88adc0bb8903427d246c07f",
+      "previous_events": 758,
+      "events": 752,
+      "removed_ids": [
+        "dual-248-0",
+        "dual-249-0",
+        "dual-294-0",
+        "dual-544-0",
+        "dual-617-0",
+        "dual-735-0"
+      ],
+      "added_ids": [],
+      "moved": 58,
+      "dropped": [
+        {
+          "event_ids": [
+            "dual-248-0"
+          ],
+          "time": 45.484,
+          "reason": "both_lanes_guarded",
+          "blockers": []
+        },
+        {
+          "event_ids": [
+            "dual-249-0"
+          ],
+          "time": 45.664,
+          "reason": "both_lanes_guarded",
+          "blockers": []
+        },
+        {
+          "event_ids": [
+            "dual-294-0"
+          ],
+          "time": 53.663,
+          "reason": "both_lanes_guarded",
+          "blockers": []
+        },
+        {
+          "event_ids": [
+            "dual-617-0"
+          ],
+          "time": 119.994,
+          "reason": "both_lanes_guarded",
+          "blockers": []
+        },
+        {
+          "event_ids": [
+            "dual-735-0"
+          ],
+          "time": 142.834,
+          "reason": "both_lanes_guarded",
+          "blockers": []
+        }
+      ],
+      "exclusive_initial": {
+        "edits": [],
+        "dropped": [],
+        "nearby_seconds": 0.02,
+        "hold_resume": false
+      },
+      "exclusive_final": {
+        "edits": [],
+        "dropped": [],
+        "nearby_seconds": 0.02,
+        "hold_resume": false
+      },
+      "violations": [],
+      "dense_pairs": [],
+      "gemini_to_single": 9,
+      "double_to_single": 1
+    },
+    {
+      "name": "validation/b0f110661ff023fbd47bc38df53df6023bfae4b69bf5a98e8fdab98ca02afa14",
+      "previous_events": 865,
+      "events": 864,
+      "removed_ids": [
+        "dual-426-0"
+      ],
+      "added_ids": [],
+      "moved": 25,
+      "dropped": [
+        {
+          "event_ids": [
+            "dual-426-0"
+          ],
+          "time": 80.874,
+          "reason": "both_lanes_guarded",
+          "blockers": []
+        }
+      ],
+      "exclusive_initial": {
+        "edits": [],
+        "dropped": [],
+        "nearby_seconds": 0.02,
+        "hold_resume": false
+      },
+      "exclusive_final": {
+        "edits": [],
+        "dropped": [],
+        "nearby_seconds": 0.02,
+        "hold_resume": false
+      },
+      "violations": [],
+      "dense_pairs": [],
+      "gemini_to_single": 7,
+      "double_to_single": 0
+    },
+    {
+      "name": "validation/9092133fd26762d76bcb3b5bc809d088c202c676da93e65080579c83790f2432",
+      "previous_events": 669,
+      "events": 666,
+      "removed_ids": [
+        "dual-302-0",
+        "dual-397-0",
+        "dual-463-0"
+      ],
+      "added_ids": [],
+      "moved": 47,
+      "dropped": [
+        {
+          "event_ids": [
+            "dual-302-0"
+          ],
+          "time": 53.145,
+          "reason": "both_lanes_guarded",
+          "blockers": []
+        },
+        {
+          "event_ids": [
+            "dual-397-0"
+          ],
+          "time": 70.294,
+          "reason": "both_lanes_guarded",
+          "blockers": []
+        },
+        {
+          "event_ids": [
+            "dual-463-0"
+          ],
+          "time": 81.435,
+          "reason": "both_lanes_guarded",
+          "blockers": []
+        }
+      ],
+      "exclusive_initial": {
+        "edits": [],
+        "dropped": [],
+        "nearby_seconds": 0.02,
+        "hold_resume": false
+      },
+      "exclusive_final": {
+        "edits": [],
+        "dropped": [],
+        "nearby_seconds": 0.02,
+        "hold_resume": false
+      },
+      "violations": [],
+      "dense_pairs": [],
+      "gemini_to_single": 6,
+      "double_to_single": 0
+    },
+    {
+      "name": "validation/a523ff356966c9f4779715ed78c5c0a609733e3446ff1116dac67b0ca6f70bd7",
+      "previous_events": 582,
+      "events": 579,
+      "removed_ids": [
+        "dual-175-0",
+        "dual-503-0",
+        "dual-506-0"
+      ],
+      "added_ids": [],
+      "moved": 47,
+      "dropped": [
+        {
+          "event_ids": [
+            "dual-175-0"
+          ],
+          "time": 34.023,
+          "reason": "both_lanes_guarded",
+          "blockers": []
+        },
+        {
+          "event_ids": [
+            "dual-503-0"
+          ],
+          "time": 97.604,
+          "reason": "both_lanes_guarded",
+          "blockers": []
+        },
+        {
+          "event_ids": [
+            "dual-506-0"
+          ],
+          "time": 98.283,
+          "reason": "both_lanes_guarded",
+          "blockers": []
+        }
+      ],
+      "exclusive_initial": {
+        "edits": [],
+        "dropped": [],
+        "nearby_seconds": 0.02,
+        "hold_resume": false
+      },
+      "exclusive_final": {
+        "edits": [],
+        "dropped": [],
+        "nearby_seconds": 0.02,
+        "hold_resume": false
+      },
+      "violations": [],
+      "dense_pairs": [],
+      "gemini_to_single": 1,
+      "double_to_single": 0
+    },
+    {
+      "name": "validation/e6a2013191fa4a98602fd4fb7a863c63b631a5d36b2147663c545ceae0107684",
+      "previous_events": 649,
+      "events": 634,
+      "removed_ids": [
+        "dual-263-0",
+        "dual-268-0",
+        "dual-268-1",
+        "dual-277-0",
+        "dual-277-1",
+        "dual-289-0",
+        "dual-304-0",
+        "dual-304-1",
+        "dual-381-0",
+        "dual-401-0",
+        "dual-414-0",
+        "dual-415-0",
+        "dual-418-1",
+        "dual-434-0",
+        "dual-435-0"
+      ],
+      "added_ids": [],
+      "moved": 44,
+      "dropped": [
+        {
+          "event_ids": [
+            "dual-263-0"
+          ],
+          "time": 45.244,
+          "reason": "both_lanes_guarded",
+          "blockers": []
+        },
+        {
+          "event_ids": [
+            "dual-268-0",
+            "dual-268-1"
+          ],
+          "time": 48.034,
+          "reason": "both_lanes_guarded",
+          "blockers": []
+        },
+        {
+          "event_ids": [
+            "dual-277-0",
+            "dual-277-1"
+          ],
+          "time": 53.514,
+          "reason": "both_lanes_guarded",
+          "blockers": []
+        },
+        {
+          "event_ids": [
+            "dual-289-0"
+          ],
+          "time": 59.584,
+          "reason": "both_lanes_guarded",
+          "blockers": []
+        },
+        {
+          "event_ids": [
+            "dual-304-0",
+            "dual-304-1"
+          ],
+          "time": 63.084,
+          "reason": "both_lanes_guarded",
+          "blockers": []
+        },
+        {
+          "event_ids": [
+            "dual-401-0"
+          ],
+          "time": 85.394,
+          "reason": "both_lanes_guarded",
+          "blockers": []
+        },
+        {
+          "event_ids": [
+            "dual-414-0"
+          ],
+          "time": 88.594,
+          "reason": "both_lanes_guarded",
+          "blockers": []
+        },
+        {
+          "event_ids": [
+            "dual-415-0"
+          ],
+          "time": 88.714,
+          "reason": "both_lanes_guarded",
+          "blockers": []
+        },
+        {
+          "event_ids": [
+            "dual-434-0"
+          ],
+          "time": 94.044,
+          "reason": "both_lanes_guarded",
+          "blockers": []
+        },
+        {
+          "event_ids": [
+            "dual-435-0"
+          ],
+          "time": 94.144,
+          "reason": "both_lanes_guarded",
+          "blockers": []
+        }
+      ],
+      "exclusive_initial": {
+        "edits": [],
+        "dropped": [],
+        "nearby_seconds": 0.02,
+        "hold_resume": false
+      },
+      "exclusive_final": {
+        "edits": [],
+        "dropped": [],
+        "nearby_seconds": 0.02,
+        "hold_resume": false
+      },
+      "violations": [],
+      "dense_pairs": [],
+      "gemini_to_single": 6,
+      "double_to_single": 2
+    },
+    {
+      "name": "validation/dff1f5b23ddece067c88316fab868ff0eba1c72ddcfcfe85ae649c50ba3439ec",
+      "previous_events": 672,
+      "events": 650,
+      "removed_ids": [
+        "dual-173-0",
+        "dual-174-0",
+        "dual-175-0",
+        "dual-179-0",
+        "dual-221-0",
+        "dual-225-0",
+        "dual-232-0",
+        "dual-233-0",
+        "dual-239-0",
+        "dual-240-0",
+        "dual-346-0",
+        "dual-405-0",
+        "dual-416-0",
+        "dual-423-0",
+        "dual-424-0",
+        "dual-443-0",
+        "dual-444-0",
+        "dual-460-0",
+        "dual-547-0",
+        "dual-548-0",
+        "dual-556-0",
+        "dual-557-0"
+      ],
+      "added_ids": [],
+      "moved": 54,
+      "dropped": [
+        {
+          "event_ids": [
+            "dual-173-0"
+          ],
+          "time": 32.244,
+          "reason": "both_lanes_guarded",
+          "blockers": []
+        },
+        {
+          "event_ids": [
+            "dual-174-0"
+          ],
+          "time": 32.314,
+          "reason": "both_lanes_guarded",
+          "blockers": []
+        },
+        {
+          "event_ids": [
+            "dual-175-0"
+          ],
+          "time": 32.504,
+          "reason": "both_lanes_guarded",
+          "blockers": []
+        },
+        {
+          "event_ids": [
+            "dual-179-0"
+          ],
+          "time": 33.864,
+          "reason": "both_lanes_guarded",
+          "blockers": []
+        },
+        {
+          "event_ids": [
+            "dual-225-0"
+          ],
+          "time": 43.404,
+          "reason": "both_lanes_guarded",
+          "blockers": []
+        },
+        {
+          "event_ids": [
+            "dual-232-0"
+          ],
+          "time": 45.184,
+          "reason": "both_lanes_guarded",
+          "blockers": []
+        },
+        {
+          "event_ids": [
+            "dual-233-0"
+          ],
+          "time": 45.354,
+          "reason": "both_lanes_guarded",
+          "blockers": []
+        },
+        {
+          "event_ids": [
+            "dual-239-0"
+          ],
+          "time": 46.945,
+          "reason": "both_lanes_guarded",
+          "blockers": []
+        },
+        {
+          "event_ids": [
+            "dual-240-0"
+          ],
+          "time": 47.124,
+          "reason": "both_lanes_guarded",
+          "blockers": []
+        },
+        {
+          "event_ids": [
+            "dual-346-0"
+          ],
+          "time": 70.244,
+          "reason": "both_lanes_guarded",
+          "blockers": []
+        },
+        {
+          "event_ids": [
+            "dual-405-0"
+          ],
+          "time": 81.534,
+          "reason": "both_lanes_guarded",
+          "blockers": []
+        },
+        {
+          "event_ids": [
+            "dual-416-0"
+          ],
+          "time": 84.714,
+          "reason": "both_lanes_guarded",
+          "blockers": []
+        },
+        {
+          "event_ids": [
+            "dual-423-0"
+          ],
+          "time": 87.174,
+          "reason": "both_lanes_guarded",
+          "blockers": []
+        },
+        {
+          "event_ids": [
+            "dual-424-0"
+          ],
+          "time": 87.363,
+          "reason": "both_lanes_guarded",
+          "blockers": []
+        },
+        {
+          "event_ids": [
+            "dual-443-0"
+          ],
+          "time": 93.184,
+          "reason": "both_lanes_guarded",
+          "blockers": []
+        },
+        {
+          "event_ids": [
+            "dual-444-0"
+          ],
+          "time": 93.294,
+          "reason": "both_lanes_guarded",
+          "blockers": []
+        },
+        {
+          "event_ids": [
+            "dual-460-0"
+          ],
+          "time": 96.364,
+          "reason": "both_lanes_guarded",
+          "blockers": []
+        },
+        {
+          "event_ids": [
+            "dual-547-0"
+          ],
+          "time": 126.714,
+          "reason": "both_lanes_guarded",
+          "blockers": []
+        },
+        {
+          "event_ids": [
+            "dual-548-0"
+          ],
+          "time": 126.894,
+          "reason": "both_lanes_guarded",
+          "blockers": []
+        },
+        {
+          "event_ids": [
+            "dual-556-0"
+          ],
+          "time": 129.534,
+          "reason": "both_lanes_guarded",
+          "blockers": []
+        },
+        {
+          "event_ids": [
+            "dual-557-0"
+          ],
+          "time": 129.714,
+          "reason": "both_lanes_guarded",
+          "blockers": []
+        }
+      ],
+      "exclusive_initial": {
+        "edits": [],
+        "dropped": [],
+        "nearby_seconds": 0.02,
+        "hold_resume": false
+      },
+      "exclusive_final": {
+        "edits": [],
+        "dropped": [],
+        "nearby_seconds": 0.02,
+        "hold_resume": false
+      },
+      "violations": [],
+      "dense_pairs": [],
+      "gemini_to_single": 4,
+      "double_to_single": 1
+    },
+    {
+      "name": "validation/47cf17aa7073b386c600936830c6becd2fec327de3623c4e7e4d08a564a522bc",
+      "previous_events": 655,
+      "events": 646,
+      "removed_ids": [
+        "dual-170-0",
+        "dual-171-0",
+        "dual-183-0",
+        "dual-192-0",
+        "dual-507-0",
+        "dual-508-0",
+        "dual-519-0",
+        "dual-520-0",
+        "dual-521-0"
+      ],
+      "added_ids": [],
+      "moved": 29,
+      "dropped": [
+        {
+          "event_ids": [
+            "dual-170-0"
+          ],
+          "time": 33.795,
+          "reason": "both_lanes_guarded",
+          "blockers": []
+        },
+        {
+          "event_ids": [
+            "dual-171-0"
+          ],
+          "time": 34.006,
+          "reason": "both_lanes_guarded",
+          "blockers": []
+        },
+        {
+          "event_ids": [
+            "dual-183-0"
+          ],
+          "time": 36.334,
+          "reason": "both_lanes_guarded",
+          "blockers": []
+        },
+        {
+          "event_ids": [
+            "dual-192-0"
+          ],
+          "time": 38.235,
+          "reason": "both_lanes_guarded",
+          "blockers": []
+        },
+        {
+          "event_ids": [
+            "dual-507-0"
+          ],
+          "time": 89.994,
+          "reason": "both_lanes_guarded",
+          "blockers": []
+        },
+        {
+          "event_ids": [
+            "dual-508-0"
+          ],
+          "time": 90.206,
+          "reason": "both_lanes_guarded",
+          "blockers": []
+        },
+        {
+          "event_ids": [
+            "dual-519-0"
+          ],
+          "time": 92.635,
+          "reason": "both_lanes_guarded",
+          "blockers": []
+        },
+        {
+          "event_ids": [
+            "dual-520-0"
+          ],
+          "time": 92.745,
+          "reason": "both_lanes_guarded",
+          "blockers": []
+        },
+        {
+          "event_ids": [
+            "dual-521-0"
+          ],
+          "time": 92.844,
+          "reason": "both_lanes_guarded",
+          "blockers": []
+        }
+      ],
+      "exclusive_initial": {
+        "edits": [],
+        "dropped": [],
+        "nearby_seconds": 0.02,
+        "hold_resume": false
+      },
+      "exclusive_final": {
+        "edits": [],
+        "dropped": [],
+        "nearby_seconds": 0.02,
+        "hold_resume": false
+      },
+      "violations": [],
+      "dense_pairs": [],
+      "gemini_to_single": 4,
+      "double_to_single": 0
+    },
+    {
+      "name": "validation/f5aa39c5144769d1f946617be671eea74bca0894a369342138c74629397390d8",
+      "previous_events": 272,
+      "events": 265,
+      "removed_ids": [
+        "dual-231-0",
+        "dual-232-0",
+        "dual-239-0",
+        "dual-240-0",
+        "dual-255-0",
+        "dual-257-0",
+        "dual-258-0"
+      ],
+      "added_ids": [],
+      "moved": 22,
+      "dropped": [
+        {
+          "event_ids": [
+            "dual-231-0"
+          ],
+          "time": 69.944,
+          "reason": "both_lanes_guarded",
+          "blockers": []
+        },
+        {
+          "event_ids": [
+            "dual-232-0"
+          ],
+          "time": 70.584,
+          "reason": "both_lanes_guarded",
+          "blockers": []
+        },
+        {
+          "event_ids": [
+            "dual-239-0"
+          ],
+          "time": 75.274,
+          "reason": "both_lanes_guarded",
+          "blockers": []
+        },
+        {
+          "event_ids": [
+            "dual-240-0"
+          ],
+          "time": 75.494,
+          "reason": "both_lanes_guarded",
+          "blockers": []
+        },
+        {
+          "event_ids": [
+            "dual-255-0"
+          ],
+          "time": 82.604,
+          "reason": "both_lanes_guarded",
+          "blockers": []
+        },
+        {
+          "event_ids": [
+            "dual-257-0"
+          ],
+          "time": 83.264,
+          "reason": "both_lanes_guarded",
+          "blockers": []
+        },
+        {
+          "event_ids": [
+            "dual-258-0"
+          ],
+          "time": 83.474,
+          "reason": "both_lanes_guarded",
+          "blockers": []
+        }
+      ],
+      "exclusive_initial": {
+        "edits": [],
+        "dropped": [],
+        "nearby_seconds": 0.02,
+        "hold_resume": false
+      },
+      "exclusive_final": {
+        "edits": [],
+        "dropped": [],
+        "nearby_seconds": 0.02,
+        "hold_resume": false
+      },
+      "violations": [],
+      "dense_pairs": [],
+      "gemini_to_single": 0,
+      "double_to_single": 0
+    },
+    {
+      "name": "validation/20ac1f843cde978146ae5a393b9f686ffb48205059c19a1fb0b0b1ba19badcbf",
+      "previous_events": 402,
+      "events": 400,
+      "removed_ids": [
+        "dual-326-0",
+        "dual-65-0"
+      ],
+      "added_ids": [],
+      "moved": 34,
+      "dropped": [
+        {
+          "event_ids": [
+            "dual-65-0"
+          ],
+          "time": 15.354,
+          "reason": "both_lanes_guarded",
+          "blockers": []
+        },
+        {
+          "event_ids": [
+            "dual-326-0"
+          ],
+          "time": 74.684,
+          "reason": "both_lanes_guarded",
+          "blockers": []
+        }
+      ],
+      "exclusive_initial": {
+        "edits": [],
+        "dropped": [],
+        "nearby_seconds": 0.02,
+        "hold_resume": false
+      },
+      "exclusive_final": {
+        "edits": [],
+        "dropped": [],
+        "nearby_seconds": 0.02,
+        "hold_resume": false
+      },
+      "violations": [],
+      "dense_pairs": [],
+      "gemini_to_single": 0,
+      "double_to_single": 0
+    },
+    {
+      "name": "validation/904a3a01f77f6f9f130ae428f8aadf614fd66b87d47642d88a46d26ac1e08fa7",
+      "previous_events": 341,
+      "events": 332,
+      "removed_ids": [
+        "dual-160-0",
+        "dual-190-0",
+        "dual-193-0",
+        "dual-241-0",
+        "dual-241-1",
+        "dual-283-0",
+        "dual-298-0",
+        "dual-60-0",
+        "dual-61-0"
+      ],
+      "added_ids": [],
+      "moved": 42,
+      "dropped": [
+        {
+          "event_ids": [
+            "dual-60-0"
+          ],
+          "time": 15.824,
+          "reason": "both_lanes_guarded",
+          "blockers": []
+        },
+        {
+          "event_ids": [
+            "dual-61-0"
+          ],
+          "time": 16.224,
+          "reason": "both_lanes_guarded",
+          "blockers": []
+        },
+        {
+          "event_ids": [
+            "dual-160-0"
+          ],
+          "time": 38.154,
+          "reason": "both_lanes_guarded",
+          "blockers": []
+        },
+        {
+          "event_ids": [
+            "dual-190-0"
+          ],
+          "time": 46.034,
+          "reason": "both_lanes_guarded",
+          "blockers": []
+        },
+        {
+          "event_ids": [
+            "dual-241-0",
+            "dual-241-1"
+          ],
+          "time": 61.814,
+          "reason": "both_lanes_guarded",
+          "blockers": []
+        },
+        {
+          "event_ids": [
+            "dual-298-0"
+          ],
+          "time": 82.153,
+          "reason": "both_lanes_guarded",
+          "blockers": []
+        }
+      ],
+      "exclusive_initial": {
+        "edits": [],
+        "dropped": [],
+        "nearby_seconds": 0.02,
+        "hold_resume": false
+      },
+      "exclusive_final": {
+        "edits": [],
+        "dropped": [],
+        "nearby_seconds": 0.02,
+        "hold_resume": false
+      },
+      "violations": [],
+      "dense_pairs": [],
+      "gemini_to_single": 3,
+      "double_to_single": 2
+    },
+    {
+      "name": "validation/08d685b5ea58e9bddda30bcfabb4630797ad131399f9fc853b54b78570a986da",
+      "previous_events": 1123,
+      "events": 1120,
+      "removed_ids": [
+        "dual-250-0",
+        "dual-548-0",
+        "dual-549-0"
+      ],
+      "added_ids": [],
+      "moved": 65,
+      "dropped": [
+        {
+          "event_ids": [
+            "dual-250-0"
+          ],
+          "time": 48.594,
+          "reason": "both_lanes_guarded",
+          "blockers": []
+        },
+        {
+          "event_ids": [
+            "dual-548-0"
+          ],
+          "time": 101.093,
+          "reason": "both_lanes_guarded",
+          "blockers": []
+        },
+        {
+          "event_ids": [
+            "dual-549-0"
+          ],
+          "time": 101.244,
+          "reason": "both_lanes_guarded",
+          "blockers": []
+        }
+      ],
+      "exclusive_initial": {
+        "edits": [],
+        "dropped": [],
+        "nearby_seconds": 0.02,
+        "hold_resume": false
+      },
+      "exclusive_final": {
+        "edits": [],
+        "dropped": [],
+        "nearby_seconds": 0.02,
+        "hold_resume": false
+      },
+      "violations": [],
+      "dense_pairs": [],
+      "gemini_to_single": 6,
+      "double_to_single": 0
+    },
+    {
+      "name": "validation/9bd9de65bbb4370d71679e87b61132d4ed672df55ca3b028b75327bccaf9f66f",
+      "previous_events": 405,
+      "events": 397,
+      "removed_ids": [
+        "dual-290-0",
+        "dual-312-0",
+        "dual-321-0",
+        "dual-341-0",
+        "dual-350-0",
+        "dual-357-0",
+        "dual-361-0",
+        "dual-364-0"
+      ],
+      "added_ids": [],
+      "moved": 28,
+      "dropped": [
+        {
+          "event_ids": [
+            "dual-290-0"
+          ],
+          "time": 56.524,
+          "reason": "both_lanes_guarded",
+          "blockers": []
+        },
+        {
+          "event_ids": [
+            "dual-312-0"
+          ],
+          "time": 62.744,
+          "reason": "both_lanes_guarded",
+          "blockers": []
+        },
+        {
+          "event_ids": [
+            "dual-321-0"
+          ],
+          "time": 65.494,
+          "reason": "both_lanes_guarded",
+          "blockers": []
+        },
+        {
+          "event_ids": [
+            "dual-341-0"
+          ],
+          "time": 69.943,
+          "reason": "both_lanes_guarded",
+          "blockers": []
+        },
+        {
+          "event_ids": [
+            "dual-350-0"
+          ],
+          "time": 73.934,
+          "reason": "both_lanes_guarded",
+          "blockers": []
+        },
+        {
+          "event_ids": [
+            "dual-357-0"
+          ],
+          "time": 76.744,
+          "reason": "both_lanes_guarded",
+          "blockers": []
+        },
+        {
+          "event_ids": [
+            "dual-361-0"
+          ],
+          "time": 78.304,
+          "reason": "both_lanes_guarded",
+          "blockers": []
+        },
+        {
+          "event_ids": [
+            "dual-364-0"
+          ],
+          "time": 79.444,
+          "reason": "both_lanes_guarded",
+          "blockers": []
+        }
+      ],
+      "exclusive_initial": {
+        "edits": [],
+        "dropped": [],
+        "nearby_seconds": 0.02,
+        "hold_resume": false
+      },
+      "exclusive_final": {
+        "edits": [],
+        "dropped": [],
+        "nearby_seconds": 0.02,
+        "hold_resume": false
+      },
+      "violations": [],
+      "dense_pairs": [],
+      "gemini_to_single": 0,
+      "double_to_single": 0
+    },
+    {
+      "name": "validation/1b6af78a9967d991d32ece13edf5b1d502c04e405116617d96412c5bc953e322",
+      "previous_events": 1262,
+      "events": 1256,
+      "removed_ids": [
+        "dual-71-0",
+        "dual-743-0",
+        "dual-761-0",
+        "dual-762-0",
+        "dual-770-0",
+        "dual-833-0"
+      ],
+      "added_ids": [],
+      "moved": 29,
+      "dropped": [
+        {
+          "event_ids": [
+            "dual-71-0"
+          ],
+          "time": 28.585,
+          "reason": "both_lanes_guarded",
+          "blockers": []
+        },
+        {
+          "event_ids": [
+            "dual-743-0"
+          ],
+          "time": 142.944,
+          "reason": "both_lanes_guarded",
+          "blockers": []
+        },
+        {
+          "event_ids": [
+            "dual-761-0"
+          ],
+          "time": 148.584,
+          "reason": "both_lanes_guarded",
+          "blockers": []
+        },
+        {
+          "event_ids": [
+            "dual-762-0"
+          ],
+          "time": 148.764,
+          "reason": "both_lanes_guarded",
+          "blockers": []
+        },
+        {
+          "event_ids": [
+            "dual-770-0"
+          ],
+          "time": 151.585,
+          "reason": "both_lanes_guarded",
+          "blockers": []
+        },
+        {
+          "event_ids": [
+            "dual-833-0"
+          ],
+          "time": 163.765,
+          "reason": "both_lanes_guarded",
+          "blockers": []
+        }
+      ],
+      "exclusive_initial": {
+        "edits": [],
+        "dropped": [],
+        "nearby_seconds": 0.02,
+        "hold_resume": false
+      },
+      "exclusive_final": {
+        "edits": [],
+        "dropped": [],
+        "nearby_seconds": 0.02,
+        "hold_resume": false
+      },
+      "violations": [],
+      "dense_pairs": [],
+      "gemini_to_single": 3,
+      "double_to_single": 0
+    },
+    {
+      "name": "validation/d80a801a56ae7b37303a2315e2c27b178dafc8405465d4e336fe46b920428e30",
+      "previous_events": 1213,
+      "events": 1212,
+      "removed_ids": [
+        "dual-1202-0"
+      ],
+      "added_ids": [],
+      "moved": 1,
+      "dropped": [
+        {
+          "event_ids": [
+            "dual-1202-0"
+          ],
+          "time": 205.914,
+          "reason": "both_lanes_guarded",
+          "blockers": []
+        }
+      ],
+      "exclusive_initial": {
+        "edits": [],
+        "dropped": [],
+        "nearby_seconds": 0.02,
+        "hold_resume": false
+      },
+      "exclusive_final": {
+        "edits": [],
+        "dropped": [],
+        "nearby_seconds": 0.02,
+        "hold_resume": false
+      },
+      "violations": [],
+      "dense_pairs": [],
+      "gemini_to_single": 0,
+      "double_to_single": 0
+    },
+    {
+      "name": "validation/43132aa248db25a2c5dda6dd76c60a2534e15dbe8e82d16881ca52fc1a51e5c5",
+      "previous_events": 938,
+      "events": 933,
+      "removed_ids": [
+        "dual-182-0",
+        "dual-192-0",
+        "dual-279-0",
+        "dual-427-0",
+        "dual-604-0"
+      ],
+      "added_ids": [],
+      "moved": 84,
+      "dropped": [
+        {
+          "event_ids": [
+            "dual-182-0"
+          ],
+          "time": 49.694,
+          "reason": "both_lanes_guarded",
+          "blockers": []
+        },
+        {
+          "event_ids": [
+            "dual-192-0"
+          ],
+          "time": 52.004,
+          "reason": "both_lanes_guarded",
+          "blockers": []
+        },
+        {
+          "event_ids": [
+            "dual-279-0"
+          ],
+          "time": 72.345,
+          "reason": "both_lanes_guarded",
+          "blockers": []
+        },
+        {
+          "event_ids": [
+            "dual-427-0"
+          ],
+          "time": 107.714,
+          "reason": "both_lanes_guarded",
+          "blockers": []
+        },
+        {
+          "event_ids": [
+            "dual-604-0"
+          ],
+          "time": 147.934,
+          "reason": "both_lanes_guarded",
+          "blockers": []
+        }
+      ],
+      "exclusive_initial": {
+        "edits": [],
+        "dropped": [],
+        "nearby_seconds": 0.02,
+        "hold_resume": false
+      },
+      "exclusive_final": {
+        "edits": [],
+        "dropped": [],
+        "nearby_seconds": 0.02,
+        "hold_resume": false
+      },
+      "violations": [],
+      "dense_pairs": [],
+      "gemini_to_single": 6,
+      "double_to_single": 0
+    },
+    {
+      "name": "validation/5955479c3d0cc741e86139c78345b1a12ede88a7c38964c5546d790e26de8ef7",
+      "previous_events": 525,
+      "events": 524,
+      "removed_ids": [
+        "dual-330-0"
+      ],
+      "added_ids": [],
+      "moved": 12,
+      "dropped": [
+        {
+          "event_ids": [
+            "dual-330-0"
+          ],
+          "time": 63.484,
+          "reason": "both_lanes_guarded",
+          "blockers": []
+        }
+      ],
+      "exclusive_initial": {
+        "edits": [],
+        "dropped": [],
+        "nearby_seconds": 0.02,
+        "hold_resume": false
+      },
+      "exclusive_final": {
+        "edits": [],
+        "dropped": [],
+        "nearby_seconds": 0.02,
+        "hold_resume": false
+      },
+      "violations": [],
+      "dense_pairs": [],
+      "gemini_to_single": 2,
+      "double_to_single": 0
+    },
+    {
+      "name": "validation/80ec815f1f93b7a5faaa42676311fa29f0e79ddf9d7183e0e038dc0a0c81008d",
+      "previous_events": 356,
+      "events": 356,
+      "removed_ids": [],
+      "added_ids": [],
+      "moved": 19,
+      "dropped": [],
+      "exclusive_initial": {
+        "edits": [],
+        "dropped": [],
+        "nearby_seconds": 0.02,
+        "hold_resume": false
+      },
+      "exclusive_final": {
+        "edits": [],
+        "dropped": [],
+        "nearby_seconds": 0.02,
+        "hold_resume": false
+      },
+      "violations": [],
+      "dense_pairs": [],
+      "gemini_to_single": 0,
+      "double_to_single": 0
+    },
+    {
+      "name": "validation/beb59cd3e44159d419f100fe7ec44cbce4ecfe06b9f030d00c2a2fbb3256f203",
+      "previous_events": 1070,
+      "events": 1065,
+      "removed_ids": [
+        "dual-274-0",
+        "dual-275-0",
+        "dual-276-0",
+        "dual-298-0",
+        "dual-299-0"
+      ],
+      "added_ids": [],
+      "moved": 27,
+      "dropped": [
+        {
+          "event_ids": [
+            "dual-274-0"
+          ],
+          "time": 62.905,
+          "reason": "both_lanes_guarded",
+          "blockers": []
+        },
+        {
+          "event_ids": [
+            "dual-275-0"
+          ],
+          "time": 63.214,
+          "reason": "both_lanes_guarded",
+          "blockers": []
+        },
+        {
+          "event_ids": [
+            "dual-276-0"
+          ],
+          "time": 63.324,
+          "reason": "both_lanes_guarded",
+          "blockers": []
+        },
+        {
+          "event_ids": [
+            "dual-298-0"
+          ],
+          "time": 67.865,
+          "reason": "both_lanes_guarded",
+          "blockers": []
+        },
+        {
+          "event_ids": [
+            "dual-299-0"
+          ],
+          "time": 68.284,
+          "reason": "both_lanes_guarded",
+          "blockers": []
+        }
+      ],
+      "exclusive_initial": {
+        "edits": [],
+        "dropped": [],
+        "nearby_seconds": 0.02,
+        "hold_resume": false
+      },
+      "exclusive_final": {
+        "edits": [],
+        "dropped": [],
+        "nearby_seconds": 0.02,
+        "hold_resume": false
+      },
+      "violations": [],
+      "dense_pairs": [],
+      "gemini_to_single": 6,
+      "double_to_single": 0
+    },
+    {
+      "name": "validation/cb01a5591ba0c78fecf28200624e4848cddee95220546389eb0533c3ef641ed0",
+      "previous_events": 452,
+      "events": 452,
+      "removed_ids": [],
+      "added_ids": [],
+      "moved": 6,
+      "dropped": [],
+      "exclusive_initial": {
+        "edits": [],
+        "dropped": [],
+        "nearby_seconds": 0.02,
+        "hold_resume": false
+      },
+      "exclusive_final": {
+        "edits": [],
+        "dropped": [],
+        "nearby_seconds": 0.02,
+        "hold_resume": false
+      },
+      "violations": [],
+      "dense_pairs": [],
+      "gemini_to_single": 0,
+      "double_to_single": 0
+    },
+    {
+      "name": "pipa",
+      "previous_events": 761,
+      "events": 757,
+      "removed_ids": [
+        "dual-337-0",
+        "dual-611-0",
+        "dual-613-0",
+        "dual-614-0"
+      ],
+      "added_ids": [],
+      "moved": 24,
+      "dropped": [
+        {
+          "event_ids": [
+            "dual-337-0"
+          ],
+          "time": 64.704,
+          "reason": "both_lanes_guarded",
+          "blockers": []
+        },
+        {
+          "event_ids": [
+            "dual-611-0"
+          ],
+          "time": 117.184,
+          "reason": "both_lanes_guarded",
+          "blockers": []
+        },
+        {
+          "event_ids": [
+            "dual-613-0"
+          ],
+          "time": 117.594,
+          "reason": "both_lanes_guarded",
+          "blockers": []
+        },
+        {
+          "event_ids": [
+            "dual-614-0"
+          ],
+          "time": 117.803,
+          "reason": "both_lanes_guarded",
+          "blockers": []
+        }
+      ],
+      "exclusive_initial": {
+        "edits": [],
+        "dropped": [],
+        "nearby_seconds": 0.02,
+        "hold_resume": false
+      },
+      "exclusive_final": {
+        "edits": [],
+        "dropped": [],
+        "nearby_seconds": 0.02,
+        "hold_resume": false
+      },
+      "violations": [],
+      "dense_pairs": [],
+      "gemini_to_single": 1,
+      "double_to_single": 0
+    },
+    {
+      "name": "snow",
+      "previous_events": 1151,
+      "events": 1142,
+      "removed_ids": [
+        "dual-123-0",
+        "dual-124-0",
+        "dual-273-0",
+        "dual-326-0",
+        "dual-327-0",
+        "dual-330-0",
+        "dual-701-0",
+        "dual-723-0",
+        "dual-724-0"
+      ],
+      "added_ids": [],
+      "moved": 47,
+      "dropped": [
+        {
+          "event_ids": [
+            "dual-123-0"
+          ],
+          "time": 31.114,
+          "reason": "both_lanes_guarded",
+          "blockers": []
+        },
+        {
+          "event_ids": [
+            "dual-124-0"
+          ],
+          "time": 31.554,
+          "reason": "both_lanes_guarded",
+          "blockers": []
+        },
+        {
+          "event_ids": [
+            "dual-273-0"
+          ],
+          "time": 60.684,
+          "reason": "both_lanes_guarded",
+          "blockers": []
+        },
+        {
+          "event_ids": [
+            "dual-326-0"
+          ],
+          "time": 76.344,
+          "reason": "both_lanes_guarded",
+          "blockers": []
+        },
+        {
+          "event_ids": [
+            "dual-327-0"
+          ],
+          "time": 76.663,
+          "reason": "both_lanes_guarded",
+          "blockers": []
+        },
+        {
+          "event_ids": [
+            "dual-701-0"
+          ],
+          "time": 150.684,
+          "reason": "both_lanes_guarded",
+          "blockers": []
+        },
+        {
+          "event_ids": [
+            "dual-723-0"
+          ],
+          "time": 155.464,
+          "reason": "both_lanes_guarded",
+          "blockers": []
+        },
+        {
+          "event_ids": [
+            "dual-724-0"
+          ],
+          "time": 155.895,
+          "reason": "both_lanes_guarded",
+          "blockers": []
+        }
+      ],
+      "exclusive_initial": {
+        "edits": [],
+        "dropped": [],
+        "nearby_seconds": 0.02,
+        "hold_resume": false
+      },
+      "exclusive_final": {
+        "edits": [],
+        "dropped": [],
+        "nearby_seconds": 0.02,
+        "hold_resume": false
+      },
+      "violations": [],
+      "dense_pairs": [],
+      "gemini_to_single": 3,
+      "double_to_single": 1
+    }
+  ],
+  "metrics": {
+    "previous": {
+      "charts": 22,
+      "audio_seconds": 3297.6238333333336,
+      "sampling": {
+        "tp": 11239,
+        "fp": 4629,
+        "fn": 2374,
+        "precision": 0.7082808167380893,
+        "recall": 0.8256078748255344,
+        "f1": 0.7624571758081476,
+        "reference_count": 13613,
+        "predicted_count": 15868
+      },
+      "lanes": {
+        "ground": {
+          "tp": 3523,
+          "fp": 4985,
+          "fn": 4148,
+          "precision": 0.41408086506817116,
+          "recall": 0.4592621561725981,
+          "f1": 0.43550281228753324,
+          "reference_count": 7671,
+          "predicted_count": 8508
+        },
+        "air": {
+          "tp": 3411,
+          "fp": 5041,
+          "fn": 4016,
+          "precision": 0.4035731187884524,
+          "recall": 0.45927023024101254,
+          "f1": 0.429624031740034,
+          "reference_count": 7427,
+          "predicted_count": 8452
+        }
+      },
+      "six_classes": {
+        "light": {
+          "tp": 3582,
+          "fp": 9823,
+          "fn": 6791,
+          "precision": 0.26721372622155914,
+          "recall": 0.3453195796780102,
+          "f1": 0.3012869038607116,
+          "reference_count": 10373,
+          "predicted_count": 13405
+        },
+        "heavy": {
+          "tp": 105,
+          "fp": 924,
+          "fn": 1611,
+          "precision": 0.10204081632653061,
+          "recall": 0.06118881118881119,
+          "f1": 0.07650273224043716,
+          "reference_count": 1716,
+          "predicted_count": 1029
+        },
+        "extra_heavy": {
+          "tp": 3,
+          "fp": 11,
+          "fn": 18,
+          "precision": 0.21428571428571427,
+          "recall": 0.14285714285714285,
+          "f1": 0.17142857142857143,
+          "reference_count": 21,
+          "predicted_count": 14
+        },
+        "gemini": {
+          "tp": 178,
+          "fp": 1606,
+          "fn": 1068,
+          "precision": 0.09977578475336323,
+          "recall": 0.14285714285714285,
+          "f1": 0.11749174917491749,
+          "reference_count": 1246,
+          "predicted_count": 1784
+        },
+        "hold": {
+          "tp": 96,
+          "fp": 663,
+          "fn": 1739,
+          "precision": 0.12648221343873517,
+          "recall": 0.05231607629427793,
+          "f1": 0.07401696222050887,
+          "reference_count": 1835,
+          "predicted_count": 759
+        },
+        "gear": {
+          "tp": 0,
+          "fp": 0,
+          "fn": 0,
+          "precision": 0.0,
+          "recall": 0.0,
+          "f1": 0.0,
+          "reference_count": 0,
+          "predicted_count": 0
+        }
+      },
+      "lane_classes": {
+        "ground": {
+          "light": {
+            "tp": 1797,
+            "fp": 4871,
+            "fn": 3458,
+            "precision": 0.26949610077984404,
+            "recall": 0.34196003805899144,
+            "f1": 0.3014342028013084,
+            "reference_count": 5255,
+            "predicted_count": 6668
+          },
+          "heavy": {
+            "tp": 55,
+            "fp": 445,
+            "fn": 829,
+            "precision": 0.11,
+            "recall": 0.06221719457013575,
+            "f1": 0.07947976878612717,
+            "reference_count": 884,
+            "predicted_count": 500
+          },
+          "extra_heavy": {
+            "tp": 3,
+            "fp": 7,
+            "fn": 18,
+            "precision": 0.3,
+            "recall": 0.14285714285714285,
+            "f1": 0.1935483870967742,
+            "reference_count": 21,
+            "predicted_count": 10
+          },
+          "gemini": {
+            "tp": 89,
+            "fp": 804,
+            "fn": 534,
+            "precision": 0.09966405375139978,
+            "recall": 0.14285714285714285,
+            "f1": 0.11741424802110818,
+            "reference_count": 623,
+            "predicted_count": 893
+          },
+          "hold": {
+            "tp": 61,
+            "fp": 389,
+            "fn": 878,
+            "precision": 0.13555555555555557,
+            "recall": 0.06496272630457935,
+            "f1": 0.08783297336213103,
+            "reference_count": 939,
+            "predicted_count": 450
+          },
+          "gear": {
+            "tp": 0,
+            "fp": 0,
+            "fn": 0,
+            "precision": 0.0,
+            "recall": 0.0,
+            "f1": 0.0,
+            "reference_count": 0,
+            "predicted_count": 0
+          }
+        },
+        "air": {
+          "light": {
+            "tp": 1785,
+            "fp": 4952,
+            "fn": 3333,
+            "precision": 0.2649547276235713,
+            "recall": 0.34876905041031653,
+            "f1": 0.3011387600168705,
+            "reference_count": 5118,
+            "predicted_count": 6737
+          },
+          "heavy": {
+            "tp": 50,
+            "fp": 479,
+            "fn": 782,
+            "precision": 0.0945179584120983,
+            "recall": 0.06009615384615385,
+            "f1": 0.07347538574577517,
+            "reference_count": 832,
+            "predicted_count": 529
+          },
+          "extra_heavy": {
+            "tp": 0,
+            "fp": 4,
+            "fn": 0,
+            "precision": 0.0,
+            "recall": 0.0,
+            "f1": 0.0,
+            "reference_count": 0,
+            "predicted_count": 4
+          },
+          "gemini": {
+            "tp": 89,
+            "fp": 802,
+            "fn": 534,
+            "precision": 0.09988776655443322,
+            "recall": 0.14285714285714285,
+            "f1": 0.11756935270805813,
+            "reference_count": 623,
+            "predicted_count": 891
+          },
+          "hold": {
+            "tp": 35,
+            "fp": 274,
+            "fn": 861,
+            "precision": 0.11326860841423948,
+            "recall": 0.0390625,
+            "f1": 0.058091286307053944,
+            "reference_count": 896,
+            "predicted_count": 309
+          },
+          "gear": {
+            "tp": 0,
+            "fp": 0,
+            "fn": 0,
+            "precision": 0.0,
+            "recall": 0.0,
+            "f1": 0.0,
+            "reference_count": 0,
+            "predicted_count": 0
+          }
+        }
+      },
+      "macro_class_f1": 0.12345448648752443,
+      "holds": {
+        "hold_head": {
+          "tp": 96,
+          "fp": 663,
+          "fn": 1739,
+          "precision": 0.12648221343873517,
+          "recall": 0.05231607629427793,
+          "f1": 0.07401696222050887,
+          "reference_count": 1835,
+          "predicted_count": 759
+        },
+        "hold_tail": {
+          "tp": 62,
+          "fp": 697,
+          "fn": 1773,
+          "precision": 0.08168642951251646,
+          "recall": 0.033787465940054495,
+          "f1": 0.047802621434078645,
+          "reference_count": 1835,
+          "predicted_count": 759
+        },
+        "hold_joint": {
+          "tp": 28,
+          "fp": 731,
+          "fn": 1807,
+          "precision": 0.03689064558629776,
+          "recall": 0.015258855585831062,
+          "f1": 0.02158828064764842,
+          "reference_count": 1835,
+          "predicted_count": 759
+        }
+      },
+      "extra_heavy": {
+        "tp": 3,
+        "fp": 11,
+        "fn": 18,
+        "precision": 0.21428571428571427,
+        "recall": 0.14285714285714285,
+        "f1": 0.17142857142857143,
+        "reference_count": 21,
+        "predicted_count": 14,
+        "false_positives_per_minute": 0.20014411387027517
+      },
+      "matched_onset_mean_absolute_ms": 10.350920900436101,
+      "matched_onset_p95_ms": 28.999999999996362,
+      "rule_rejections": 0,
+      "candidate_count": 16111,
+      "rule_rejection_rate": 0.0,
+      "decode_rejections": {},
+      "onset_tolerance_ms": 50.0,
+      "hold_tail_tolerance_ms": 100,
+      "unit": "six-class and hold metrics use actual lane entities; sampling collapses exact co-located starts",
+      "masks": "excluded ghost/item cells and quantization collisions excluded from scoring",
+      "human_review": "pending; community reference is not gold"
+    },
+    "strict": {
+      "charts": 22,
+      "audio_seconds": 3297.6238333333336,
+      "sampling": {
+        "tp": 11171,
+        "fp": 4614,
+        "fn": 2442,
+        "precision": 0.7076971808679126,
+        "recall": 0.8206126496731065,
+        "f1": 0.7599836723586638,
+        "reference_count": 13613,
+        "predicted_count": 15785
+      },
+      "lanes": {
+        "ground": {
+          "tp": 3491,
+          "fp": 4954,
+          "fn": 4180,
+          "precision": 0.4133806986382475,
+          "recall": 0.45509060096467213,
+          "f1": 0.43323405311491686,
+          "reference_count": 7671,
+          "predicted_count": 8445
+        },
+        "air": {
+          "tp": 3397,
+          "fp": 5029,
+          "fn": 4030,
+          "precision": 0.4031568953239972,
+          "recall": 0.4573852161034065,
+          "f1": 0.4285624172080994,
+          "reference_count": 7427,
+          "predicted_count": 8426
+        }
+      },
+      "six_classes": {
+        "light": {
+          "tp": 3547,
+          "fp": 9763,
+          "fn": 6826,
+          "precision": 0.2664913598797896,
+          "recall": 0.34194543526462934,
+          "f1": 0.29953975425410634,
+          "reference_count": 10373,
+          "predicted_count": 13310
+        },
+        "heavy": {
+          "tp": 101,
+          "fp": 911,
+          "fn": 1615,
+          "precision": 0.09980237154150198,
+          "recall": 0.058857808857808856,
+          "f1": 0.07404692082111437,
+          "reference_count": 1716,
+          "predicted_count": 1012
+        },
+        "extra_heavy": {
+          "tp": 3,
+          "fp": 11,
+          "fn": 18,
+          "precision": 0.21428571428571427,
+          "recall": 0.14285714285714285,
+          "f1": 0.17142857142857143,
+          "reference_count": 21,
+          "predicted_count": 14
+        },
+        "gemini": {
+          "tp": 176,
+          "fp": 1600,
+          "fn": 1070,
+          "precision": 0.0990990990990991,
+          "recall": 0.14125200642054575,
+          "f1": 0.11647915287888816,
+          "reference_count": 1246,
+          "predicted_count": 1776
+        },
+        "hold": {
+          "tp": 96,
+          "fp": 663,
+          "fn": 1739,
+          "precision": 0.12648221343873517,
+          "recall": 0.05231607629427793,
+          "f1": 0.07401696222050887,
+          "reference_count": 1835,
+          "predicted_count": 759
+        },
+        "gear": {
+          "tp": 0,
+          "fp": 0,
+          "fn": 0,
+          "precision": 0.0,
+          "recall": 0.0,
+          "f1": 0.0,
+          "reference_count": 0,
+          "predicted_count": 0
+        }
+      },
+      "lane_classes": {
+        "ground": {
+          "light": {
+            "tp": 1774,
+            "fp": 4832,
+            "fn": 3481,
+            "precision": 0.2685437481077808,
+            "recall": 0.3375832540437678,
+            "f1": 0.2991316077902369,
+            "reference_count": 5255,
+            "predicted_count": 6606
+          },
+          "heavy": {
+            "tp": 52,
+            "fp": 438,
+            "fn": 832,
+            "precision": 0.10612244897959183,
+            "recall": 0.058823529411764705,
+            "f1": 0.07569141193595343,
+            "reference_count": 884,
+            "predicted_count": 490
+          },
+          "extra_heavy": {
+            "tp": 3,
+            "fp": 7,
+            "fn": 18,
+            "precision": 0.3,
+            "recall": 0.14285714285714285,
+            "f1": 0.1935483870967742,
+            "reference_count": 21,
+            "predicted_count": 10
+          },
+          "gemini": {
+            "tp": 88,
+            "fp": 801,
+            "fn": 535,
+            "precision": 0.09898762654668167,
+            "recall": 0.14125200642054575,
+            "f1": 0.1164021164021164,
+            "reference_count": 623,
+            "predicted_count": 889
+          },
+          "hold": {
+            "tp": 61,
+            "fp": 389,
+            "fn": 878,
+            "precision": 0.13555555555555557,
+            "recall": 0.06496272630457935,
+            "f1": 0.08783297336213103,
+            "reference_count": 939,
+            "predicted_count": 450
+          },
+          "gear": {
+            "tp": 0,
+            "fp": 0,
+            "fn": 0,
+            "precision": 0.0,
+            "recall": 0.0,
+            "f1": 0.0,
+            "reference_count": 0,
+            "predicted_count": 0
+          }
+        },
+        "air": {
+          "light": {
+            "tp": 1773,
+            "fp": 4931,
+            "fn": 3345,
+            "precision": 0.2644689737470167,
+            "recall": 0.34642438452520513,
+            "f1": 0.2999492471663001,
+            "reference_count": 5118,
+            "predicted_count": 6704
+          },
+          "heavy": {
+            "tp": 49,
+            "fp": 473,
+            "fn": 783,
+            "precision": 0.09386973180076628,
+            "recall": 0.05889423076923077,
+            "f1": 0.0723781388478582,
+            "reference_count": 832,
+            "predicted_count": 522
+          },
+          "extra_heavy": {
+            "tp": 0,
+            "fp": 4,
+            "fn": 0,
+            "precision": 0.0,
+            "recall": 0.0,
+            "f1": 0.0,
+            "reference_count": 0,
+            "predicted_count": 4
+          },
+          "gemini": {
+            "tp": 88,
+            "fp": 799,
+            "fn": 535,
+            "precision": 0.0992108229988726,
+            "recall": 0.14125200642054575,
+            "f1": 0.11655629139072848,
+            "reference_count": 623,
+            "predicted_count": 887
+          },
+          "hold": {
+            "tp": 35,
+            "fp": 274,
+            "fn": 861,
+            "precision": 0.11326860841423948,
+            "recall": 0.0390625,
+            "f1": 0.058091286307053944,
+            "reference_count": 896,
+            "predicted_count": 309
+          },
+          "gear": {
+            "tp": 0,
+            "fp": 0,
+            "fn": 0,
+            "precision": 0.0,
+            "recall": 0.0,
+            "f1": 0.0,
+            "reference_count": 0,
+            "predicted_count": 0
+          }
+        }
+      },
+      "macro_class_f1": 0.12258522693386487,
+      "holds": {
+        "hold_head": {
+          "tp": 96,
+          "fp": 663,
+          "fn": 1739,
+          "precision": 0.12648221343873517,
+          "recall": 0.05231607629427793,
+          "f1": 0.07401696222050887,
+          "reference_count": 1835,
+          "predicted_count": 759
+        },
+        "hold_tail": {
+          "tp": 62,
+          "fp": 697,
+          "fn": 1773,
+          "precision": 0.08168642951251646,
+          "recall": 0.033787465940054495,
+          "f1": 0.047802621434078645,
+          "reference_count": 1835,
+          "predicted_count": 759
+        },
+        "hold_joint": {
+          "tp": 28,
+          "fp": 731,
+          "fn": 1807,
+          "precision": 0.03689064558629776,
+          "recall": 0.015258855585831062,
+          "f1": 0.02158828064764842,
+          "reference_count": 1835,
+          "predicted_count": 759
+        }
+      },
+      "extra_heavy": {
+        "tp": 3,
+        "fp": 11,
+        "fn": 18,
+        "precision": 0.21428571428571427,
+        "recall": 0.14285714285714285,
+        "f1": 0.17142857142857143,
+        "reference_count": 21,
+        "predicted_count": 14,
+        "false_positives_per_minute": 0.20014411387027517
+      },
+      "matched_onset_mean_absolute_ms": 10.339629397547343,
+      "matched_onset_p95_ms": 28.999999999996362,
+      "rule_rejections": 0,
+      "candidate_count": 16111,
+      "rule_rejection_rate": 0.0,
+      "decode_rejections": {},
+      "onset_tolerance_ms": 50.0,
+      "hold_tail_tolerance_ms": 100,
+      "unit": "six-class and hold metrics use actual lane entities; sampling collapses exact co-located starts",
+      "masks": "excluded ghost/item cells and quantization collisions excluded from scoring",
+      "human_review": "pending; community reference is not gold"
+    }
+  },
+  "interpretation": "Same neural outputs; postprocessing only. Reused validation, not independent final test."
+}

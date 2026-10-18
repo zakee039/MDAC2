@@ -45,4 +45,3 @@ async function adopt(){if(props.blocked)return;await act(async()=>emit('applied'
     </fieldset>
   </section>
 </template>
-<style scoped>fieldset{border:0;padding:0}label{display:block;margin:.4rem 0}button,input,select{font:inherit;padding:.3rem;margin:.2rem}pre{max-height:12rem;overflow:auto}[role=alert]{color:#ffb4ac}</style>

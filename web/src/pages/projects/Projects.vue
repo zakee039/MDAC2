@@ -1,48 +1,60 @@
 <script setup lang="ts">
-import { ref, shallowReactive } from 'vue'
+import { ref, shallowReactive, watch } from 'vue'
 import { ProjectsApi } from '../../services/projects.ts'
 import { ProjectSession } from './ProjectSession.ts'
 import Workstation from './Workstation.vue'
+import StudioIcon from '../../components/StudioIcon.vue'
 const token = ref(''), title = ref(''), id = ref(''), merged = ref(''), parseError = ref('')
 const session = shallowReactive(new ProjectSession(new ProjectsApi(() => token.value)))
 const workDirty=ref(false)
+const workBlocked=ref(false)
+const mode=ref<'create'|'open'>('create')
+const showToken=ref(false)
+const verifiedToken=ref('')
+const manageProjects=ref(false)
+const emit=defineEmits<{project:[title:string]}>()
+watch(()=>session.project, value=>{emit('project',value?.title || '');if(value){verifiedToken.value=token.value;manageProjects.value=false}})
+const stages=['导入音频','时间与信息','采音候选','轨道编排','音符语义','结构与复用','资源导出']
 function merge() {
   try { session.merge(JSON.parse(merged.value)); parseError.value = '' } catch { parseError.value = '请输入审阅后的 ChartIR JSON，保存时由服务端严格校验。' }
 }
 </script>
 <template>
-  <section aria-labelledby="projects-title">
-    <h2 id="projects-title">工程</h2>
-    <label>本机安装令牌 <input v-model="token" type="password" autocomplete="off" /></label>
-    <p>令牌仅保存在当前页面内存。通过同源本地服务连接。</p>
-    <fieldset :disabled="session.busy || !token">
-      <form @submit.prevent="!workDirty && session.create(title)"><label>工程名称 <input v-model="title" maxlength="256" required /></label> <button :disabled="workDirty">新建工程</button></form>
-      <form @submit.prevent="!workDirty && session.open(id)"><label>工程 ID <input v-model="id" required /></label> <button :disabled="workDirty">打开工程</button></form>
-      <p v-if="session.busy" role="status">正在处理…</p>
-      <p v-if="session.error" role="alert">{{ session.error }}</p>
-      <template v-if="session.project">
-        <h3>{{ session.project.title }}</h3>
-        <p>工程 ID：{{ session.project.project_id }}</p>
-        <p>当前修订：{{ session.project.head_revision ?? '尚未保存谱面' }} · {{ session.dirty ? '有未保存修改' : '已同步' }}</p>
-        <button :disabled="!session.dirty || session.conflict" @click="session.save()">保存谱面</button>
-        <button :disabled="!session.dirty" @click="session.discard()">放弃本地草稿</button>
-        <p v-if="!session.draft">工程已建立；请在谱面编辑器生成草稿后保存。</p>
-        <Workstation :key="session.project.project_id" :project-id="session.project.project_id" :token="token" @dirty="workDirty=$event" @saved="session.open(session.project!.project_id)" />
-        <section v-if="session.conflict" aria-label="保存冲突">
-          <h3>保存冲突：本地草稿已保留</h3>
-          <button @click="session.compare()">获取最新版本并比较</button>
-          <template v-if="session.remote">
-            <div class="comparison"><div><h4>本地草稿</h4><pre>{{ JSON.stringify(session.draft, null, 2) }}</pre></div><div><h4>远端修订 {{ session.remote.head_revision }}</h4><pre>{{ JSON.stringify(session.remote.chart, null, 2) }}</pre></div></div>
-            <button @click="session.useRemote()">明确放弃草稿，使用远端版本</button>
-            <label>人工合并后的谱面 JSON <textarea v-model="merged" rows="8" /></label>
-            <button @click="merge">采用合并草稿，等待保存</button>
-            <p v-if="parseError" role="alert">{{ parseError }}</p>
-          </template>
-        </section>
-      </template>
-    </fieldset>
+  <section id="projects" aria-labelledby="projects-title">
+    <section id="connection" class="connection panel" aria-label="本地连接">
+      <div class="connection-copy"><span class="connection-icon"><StudioIcon name="lock" :size="20" /></span><div><h2>连接你的本地工作室</h2><p>输入启动终端中的安装令牌，仅在当前页面内存中使用。</p></div></div>
+      <div class="token-field"><label for="installation-token">本机安装令牌</label><div class="token-input"><input id="installation-token" v-model="token" :type="showToken ? 'text' : 'password'" autocomplete="off" placeholder="粘贴安装令牌以启用项目操作" spellcheck="false" /><button type="button" :aria-pressed="showToken" @click="showToken=!showToken">{{ showToken ? '隐藏' : '显示' }}</button></div></div>
+    </section>
+    <section id="project-entry" class="project-entry panel">
+      <div class="entry-header section-title"><div><span class="eyebrow">CREATE SOMETHING THAT MOVES YOU</span><h2 id="projects-title">{{ session.project ? '项目管理' : '下一段节奏，由你开始' }}</h2></div><span class="entry-status"><i :class="{ready: !!token}" />{{ !token ? '等待本地连接' : verifiedToken===token ? '已连接本地服务' : '令牌已填写 · 待请求验证' }}</span><button v-if="session.project" class="manage-button secondary" :aria-expanded="manageProjects" @click="manageProjects=!manageProjects">{{ manageProjects ? '收起' : '切换项目' }}</button></div>
+      <div v-show="!session.project || manageProjects" class="entry-grid">
+        <div class="entry-form">
+          <div class="entry-tabs" role="group" aria-label="项目操作"><button :class="{selected: mode==='create'}" :aria-pressed="mode==='create'" @click="mode='create'"><StudioIcon name="plus" :size="16" />新建项目</button><button :class="{selected: mode==='open'}" :aria-pressed="mode==='open'" @click="mode='open'"><StudioIcon name="folder" :size="16" />打开已有项目</button></div>
+          <fieldset :disabled="session.busy || workBlocked || !token">
+            <form v-if="mode==='create'" @submit.prevent="!workDirty && session.create(title)"><label for="project-name">给你的新作品起个名字</label><input id="project-name" v-model="title" maxlength="256" required placeholder="例如：我的第一张谱面" /><p>创建项目后，导入音乐，开始逐拍创作。</p><button class="primary" :disabled="workDirty || session.dirty || !title.trim()"><StudioIcon name="plus" :size="17" />{{session.busy?'正在创建…':'创建项目'}}<StudioIcon name="arrow" :size="16" /></button></form>
+            <form v-else @submit.prevent="!workDirty && session.open(id)"><label for="project-id">已有项目 ID</label><input id="project-id" v-model="id" required placeholder="粘贴保存过的项目 ID" spellcheck="false" /><p>从本地读取已保存的谱面与时间轴，继续上次创作。</p><button class="primary" :disabled="workDirty || session.dirty || !id.trim()"><StudioIcon name="folder" :size="17" />{{session.busy?'正在打开…':'打开项目'}}<StudioIcon name="arrow" :size="16" /></button></form>
+          </fieldset>
+          <p v-if="!token" class="entry-hint"><StudioIcon name="lock" :size="13" />先填写上方安装令牌，即可开始。</p>
+          <p v-if="workDirty || session.dirty" class="entry-hint">当前作品有未保存修改，请先保存再切换项目。</p>
+          <p v-if="session.busy" role="status">正在处理项目，请稍候…</p><p v-if="session.error" role="alert">{{ session.error }}</p>
+        </div>
+        <aside class="entry-guide"><span class="guide-kicker">YOUR CREATIVE PROCESS</span><h3>辅助创作，由你掌控。</h3><div v-for="(item,index) in [{icon:'wave',title:'从声音中发现节奏',description:'导入音频，建立并听检时间轴。'},{icon:'sliders',title:'每一拍，都可以打磨',description:'审阅采音候选，编辑地空轨道与音符。'},{icon:'layers',title:'完成属于你的作品',description:'确认结构复用，保存并导出 MDM。'}]" :key="item.icon" class="guide-row"><span><StudioIcon :name="item.icon" :size="18" /></span><div><h4>{{item.title}}</h4><p>{{item.description}}</p></div><small>0{{index+1}}</small></div><div class="guide-note"><StudioIcon name="check" :size="13" />自动分析提供建议，最终选择交给你。</div></aside>
+      </div>
+    </section>
+    <section v-if="!session.project" id="workflow" class="workflow-overview" aria-label="创作流程"><div class="section-title"><h2>从旋律，到可玩的谱面</h2><span class="section-index">THE WORKFLOW / 07 STEPS</span></div><ol><li v-for="(stage,index) in stages" :key="stage"><span>0{{index+1}}</span><strong>{{stage}}</strong></li></ol><p>创建或打开项目后，按音频和谱面状态解锁操作。可以随时回看已就绪的阶段。</p></section>
+    <template v-if="session.project">
+      <section class="project-meta panel" aria-label="当前项目"><div><span class="eyebrow">CURRENT PROJECT</span><h2>{{ session.project.title }}</h2><p>项目 ID <code>{{ session.project.project_id }}</code></p></div><div class="revision-info"><span>{{ workDirty || session.dirty ? '有未保存修改' : session.project.head_revision ? '已保存修订' : '等待导入音频' }}</span><code>{{ session.project.head_revision || '尚未保存谱面' }}</code></div></section>
+      <div v-if="session.dirty" class="draft-actions"><button class="primary" :disabled="session.busy || session.conflict" @click="session.save()">保存谱面</button><button :disabled="session.busy" @click="session.discard()">放弃本地草稿</button></div>
+      <Workstation :key="session.project.project_id" :project-id="session.project.project_id" :token="token" @dirty="workDirty=$event" @blocked="workBlocked=$event" @saved="session.open(session.project!.project_id)" />
+      <section v-if="session.conflict" class="panel conflict-panel" aria-label="保存冲突"><h3>保存冲突：本地草稿已保留</h3><button :disabled="session.busy" @click="session.compare()">获取最新版本并比较</button><template v-if="session.remote"><div class="comparison"><div><h4>本地草稿</h4><pre>{{ JSON.stringify(session.draft, null, 2) }}</pre></div><div><h4>远端修订 {{ session.remote.head_revision }}</h4><pre>{{ JSON.stringify(session.remote.chart, null, 2) }}</pre></div></div><button :disabled="session.busy" @click="session.useRemote()">明确放弃草稿，使用远端版本</button><label>人工合并后的谱面 JSON <textarea v-model="merged" rows="8" /></label><button :disabled="session.busy" @click="merge">采用合并草稿，等待保存</button><p v-if="parseError" role="alert">{{ parseError }}</p></template></section>
+    </template>
   </section>
 </template>
 <style scoped>
-fieldset { border: 0; padding: 0; } form { margin: 1rem 0; } input, textarea, button { font: inherit; padding: .5rem; } button { cursor: pointer; margin: .3rem; } label { display: block; } textarea { display: block; width: 90%; } .comparison { display: grid; grid-template-columns: 1fr 1fr; gap: 1rem; } pre { overflow: auto; max-height: 20rem; } [role=alert] { color: #ffb4ac; }
+.connection { padding: 19px 24px; display: flex; align-items: center; justify-content: space-between; gap: 24px; margin-bottom: 22px; background: #ffffff; }.connection-copy { display: flex; align-items: center; gap: 13px; }.connection-icon { display: grid; place-items: center; width: 39px; height: 42px; border: 1px solid #dce5db; border-radius: 9px; color: #526859; background: #f3f7f0; flex-shrink: 0; }.connection h2 { font-size: 13px; margin: 0 0 5px; }.connection p { font-size: 10px; margin: 0; color: #61756a; }.token-field { width: 330px; flex-shrink: 0; }.token-field>label { display: block; font-size: 10px; color: #526859; margin-bottom: 7px; }.token-input { display: flex; border: 1px solid #dce5db; border-radius: 7px; overflow: hidden; background: #ffffff; }.token-input input { flex: 1; min-width: 0; border: 0; font-size: 11px; background: transparent; }.token-input button { border: 0; border-left: 1px solid #dce5db; font-size: 10px; background: #f3f7f0; border-radius: 0; padding: 8px 12px; }.token-input:focus-within { outline: 2px solid #a6c578; outline-offset: 2px; }.token-input input:focus-visible { outline: none; }
+.project-entry { overflow: hidden; }.entry-header { padding: 25px 28px 22px; border-bottom: 1px solid var(--border); }.entry-header .eyebrow { font-size: 8px; letter-spacing: 1.5px; margin-bottom: 10px; color: #61756a; }.entry-header h2 { font-size: 18px; }.manage-button { padding: 7px 12px; font-size: 11px; }.entry-header:has(.manage-button) .entry-status { margin-left: auto; }.entry-status { display: flex; gap: 7px; align-items: center; font-size: 10px; color: #61756a; }.entry-status i { width: 5px; height: 5px; border-radius: 50%; background: #a8caa4; }.entry-status i.ready { background: #d9ecce; }.entry-grid { display: grid; grid-template-columns: 1.4fr 1fr; gap: 37px; padding: 27px 28px; }.entry-tabs { display: flex; border-bottom: 1px solid var(--border); gap: 22px; margin-bottom: 27px; }.entry-tabs button { background: none; border: 0; border-bottom: 2px solid transparent; border-radius: 0; padding: 0 0 13px; color: #61756a; font-size: 12px; }.entry-tabs button.selected { color: var(--accent); border-bottom-color: var(--accent); }form>label { display: block; margin: 0 0 11px; font-size: 12px; }form>input { width: 100%; min-height: 45px; }form p { font-size: 11px; margin: 10px 0 23px; }form .primary { min-width: 150px; justify-content: space-between; }.entry-hint { display: flex; align-items: center; gap: 6px; font-size: 10px; margin: 14px 0 0; }.entry-guide { padding: 21px 23px; border-radius: 11px; background: #f3f7f0; border: 1px solid #dce5db; }.guide-kicker { font: 8px var(--mono); letter-spacing: 1px; color: #61756a; }.entry-guide h3 { margin: 10px 0 23px; font-size: 15px; color: #526859; }.guide-row { display: flex; align-items: flex-start; gap: 12px; margin-bottom: 18px; }.guide-row>span { width: 30px; height: 32px; flex-shrink: 0; background: #f3f7f0; color: #526859; border-radius: 7px; display: grid; place-items: center; }.guide-row h4 { font-size: 12px; color: #526859; margin: 0 0 5px; font-weight: 500; }.guide-row p { font-size: 10px; color: #61756a; margin: 0; }.guide-row small { margin-left: auto; font: 9px var(--mono); color: #344f40; }.guide-note { border-top: 1px solid #dce5db; padding-top: 13px; font-size: 9px; color: #61756a; display: flex; align-items: center; gap: 6px; }
+.workflow-overview { margin-top: 31px; }.workflow-overview h2 { font-size: 14px; }.workflow-overview ol { list-style: none; display: grid; grid-template-columns: repeat(7,minmax(0,1fr)); padding: 0; gap: 8px; margin: 18px 0 11px; }.workflow-overview li { padding: 14px 11px; border: 1px solid #dce5db; border-radius: 8px; background: #ffffff; }.workflow-overview li>span { display: block; color: #61756a; font: 10px var(--mono); margin-bottom: 9px; }.workflow-overview strong { font-size: 11px; font-weight: 500; color: #526859; }.workflow-overview>p { font-size: 10px; color: #61756a; margin: 0; }.project-meta { display: flex; justify-content: space-between; gap: 20px; padding: 24px; margin: 25px 0 18px; }.project-meta h2 { margin: 10px 0; overflow-wrap: anywhere; }.project-meta p { margin: 0; font-size: 11px; }.project-meta code { color: #526859; font: 11px var(--mono); overflow-wrap: anywhere; }.revision-info { text-align: right; max-width: 45%; }.revision-info>span { display: block; font-size: 11px; color: var(--accent); margin-bottom: 12px; }.conflict-panel { margin-top: 20px; padding: 24px; }.comparison { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; }.comparison>div { min-width: 0; }.conflict-panel textarea { width: 100%; }.draft-actions { margin-bottom: 18px; }
+@media (max-width:1150px) { .connection { flex-wrap: wrap; gap: 15px; }.token-field { flex: 1; min-width: 230px; }.entry-grid { gap: 22px; grid-template-columns: 1.2fr 1fr; }.entry-guide { padding: 18px; } }
+@media (max-width:950px) { .entry-grid { grid-template-columns: 1fr; }.entry-guide { display: none; }.workflow-overview ol { grid-template-columns: repeat(4,minmax(0,1fr)); } }
+@media (max-width:600px) { .connection { padding: 18px; }.connection p { font-size: 10px; }.token-field { width: 100%; min-width: 0; flex-basis: 100%; }.entry-header { padding: 21px 20px; gap: 13px; }.entry-grid { padding: 23px 20px; }.entry-header h2 { font-size: 17px; }.entry-tabs { gap: 21px; }.workflow-overview .section-index { font-size: 8px; }.workflow-overview ol { gap: 6px; }.workflow-overview li { padding: 12px 8px; }.workflow-overview strong { font-size: 10px; }.project-meta { flex-direction: column; padding: 20px; }.revision-info { max-width: 100%; text-align: left; }.comparison { grid-template-columns: 1fr; } }
 </style>

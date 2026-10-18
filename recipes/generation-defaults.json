@@ -1,0 +1,14 @@
+{
+  "schema_version": 1,
+  "scope": "all new supervised automatic generation; frozen historical reproduction remains explicit",
+  "base_model": "v3",
+  "inference_profile": "v2-vocal-soft-bias-v1",
+  "postprocess_profile": "global-postprocess-1ms-v2",
+  "postprocess_module": "mdac2.data_preparation.global_postprocess",
+  "storage_step_seconds": 0.001,
+  "export_module": "mdac2.data_preparation.six_export",
+  "delivery_directory": "E:/OneDrive - stu.sau.edu.cn/MuseDash/Custom_Albums",
+  "new_web_preview": false,
+  "model_weights_changed": false,
+  "human_acceptance": "pending"
+}

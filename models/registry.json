@@ -1,11 +1,40 @@
 {
-  "schema_version": 1,
-  "current_model": "v1",
+  "schema_version": 2,
+  "current_model": "v3",
   "models": {
     "v1": {
       "manifest": "models/v1/manifest.json",
       "application_version": "0.1.0",
       "status": "user_selected_playtest_baseline"
+    },
+    "v2": {
+      "manifest": "models/v2/manifest.json",
+      "application_version": "0.1.0",
+      "status": "user_selected_playtest_baseline"
+    },
+    "v3": {
+      "manifest": "models/v3/manifest.json",
+      "manifest_sha256": "e5afe3ad1fe4d12b4558672b66393975d75f3a785b1b1e68f939f04e6d0e795c",
+      "application_version": "0.1.0",
+      "status": "user_selected_playtest_baseline"
     }
-  }
+  },
+  "current_recipe": null,
+  "recipes": {
+    "R1": {
+      "manifest": "recipes/R1/manifest.json",
+      "base_model": "v2",
+      "manifest_sha256": "7fa440d87a3de4aa5bab8679a1c3c47af241c516db066dea85acfeeec4ecb1f7",
+      "status": "user_selected_playtest_recipe"
+    }
+  },
+  "selection_note": "V3 includes its frozen default pipeline. No R override active. Historical R1 still explicitly depends on V2; V2 and its artifacts remain unchanged. Manual ChartIR is separate.",
+  "active_generation_defaults": {
+    "path": "recipes/generation-defaults.json",
+    "entrypoint": "tools/generate_current_playtest.py",
+    "takes_precedence_over_current_recipe": true,
+    "scope": "new supervised automatic generation",
+    "status": "user_selected_v3_baseline"
+  },
+  "last_selected_recipe": "R1"
 }

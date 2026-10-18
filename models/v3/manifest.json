@@ -1,0 +1,498 @@
+{
+  "schema_version": 1,
+  "model_id": "v3",
+  "product": "MDAC2",
+  "application_version": "0.1.0",
+  "release_date": "2026-10-18",
+  "status": "user_selected_playtest_baseline",
+  "parent_model": "v2",
+  "parent_manifest_sha256": "9ae31c1894420492e4eae64cf88989d3f199523d00b78dbc7801c30642896562",
+  "version_note": "User-selected V3 = unchanged V2 network weights + soft vocal bias + strict global 1ms postprocessing. No retraining.",
+  "checkpoints": {
+    "onset": {
+      "path": "models/v3/weights/onset.pt",
+      "sha256": "bf4b4bd0b33fea90b9f9f4606127ea1d0cf0a4bbd2bea31d153953f81e5d8d50",
+      "bytes": 40048515,
+      "source_experiment": "supervised-dual-v1-20260928",
+      "source_best_epoch": 3,
+      "parameters": 3331074,
+      "architecture": "vocals-accompaniment-onset-v1"
+    },
+    "arrangement": {
+      "path": "models/v3/weights/arrangement.pt",
+      "sha256": "426c1e6a358050a8bcf716638b553a3c1dbe2b42761fbd0c48ccf364a31853d5",
+      "bytes": 132008058,
+      "source_experiment": "supervised-dual-v6-20260930",
+      "source_best_epoch": 18,
+      "parameters": 10993122,
+      "architecture": "mix-bigru512-causal-history256-v6"
+    }
+  },
+  "checkpoint_format": "original-training-checkpoint-with-model-state",
+  "inference": {
+    "onset_threshold": 0.3,
+    "onset_streams": [
+      "vocals",
+      "accompaniment"
+    ],
+    "arrangement_streams": [
+      "mix"
+    ],
+    "separator": "fixed-pretrained-weights; not retrained",
+    "feature_hop_seconds": 0.01,
+    "bpm": false,
+    "beat_grid": false,
+    "empty_gap_fill": false,
+    "gear_postprocessing": false,
+    "generated_history": true,
+    "reference_history_input": false,
+    "selection_profile": "v2-vocal-soft-bias-v1",
+    "maximum_vocal_odds_multiplier": 2,
+    "storage_step_seconds": 0.001
+  },
+  "postprocessing": {
+    "policy": {
+      "version": "global-postprocess-1ms-v2",
+      "storage": {
+        "version": "absolute-1ms-global-v1",
+        "step_seconds": 0.001,
+        "bpm": 120,
+        "song_tempo_estimated": false,
+        "old_5ms_quantization": false
+      },
+      "alignment_seconds": 0.1,
+      "hold_click_gap_seconds": 0.505,
+      "hold_interior_opposite": true,
+      "post_tail_opposite_seconds": 0.5,
+      "gemini_in_guard": "opposite_single_light",
+      "double_heavy_in_guard": "opposite_single_heavy",
+      "blocked_transfer": "discard",
+      "hold_head_included": true,
+      "exclusive_priority": true,
+      "old_250ms_tail_extension": false
+    },
+    "prior_path": "models/v3/weights/run-prior.json",
+    "prior_sha256": "6a27352cb2c0f9d6fc97f8f06d5742274d8c959a9fd5863fffad96568b875558",
+    "sources": {
+      "recipes/generation-defaults.json": {
+        "snapshot": "models/v3/source/recipes/generation-defaults.json",
+        "sha256": "58dcc32e2d0f253d1f365a3706e6ece274158f94add5bced67c1460f668adadb"
+      },
+      "src/mdac2/data_preparation/v2_vocal_bias.py": {
+        "snapshot": "models/v3/source/src/mdac2/data_preparation/v2_vocal_bias.py",
+        "sha256": "58097bb271ffacf25c28925ed5a2f24c516a9897d72cd5d1b2c82150b3954cf3"
+      },
+      "src/mdac2/data_preparation/vocal_priority.py": {
+        "snapshot": "models/v3/source/src/mdac2/data_preparation/vocal_priority.py",
+        "sha256": "f1ecc8af10838ca1f688d3ad64647d03b513ee9989fe35ba19f703072261ddcb"
+      },
+      "src/mdac2/data_preparation/vocal_priority_r2.py": {
+        "snapshot": "models/v3/source/src/mdac2/data_preparation/vocal_priority_r2.py",
+        "sha256": "4fe3c573cd973af8ef4379cee8f211710ebbd22c3bb5463c3dd431345a985839"
+      },
+      "src/mdac2/data_preparation/fixed_grid_r2.py": {
+        "snapshot": "models/v3/source/src/mdac2/data_preparation/fixed_grid_r2.py",
+        "sha256": "bc64ef3c1953b31483e4df73d5b11b15841ee18ffbb2640acb8a295e675007c0"
+      },
+      "src/mdac2/data_preparation/generated_constraints.py": {
+        "snapshot": "models/v3/source/src/mdac2/data_preparation/generated_constraints.py",
+        "sha256": "1373897f80c21fffc9eb3bb946bc79906450f1e2b4aaf225d94f1fdb98db36df"
+      },
+      "src/mdac2/data_preparation/global_postprocess.py": {
+        "snapshot": "models/v3/source/src/mdac2/data_preparation/global_postprocess.py",
+        "sha256": "344dcb4a50cd9d5e3cdff05e7ad7693d08bc4853ca747bd179318e15c3b86d47"
+      },
+      "src/mdac2/data_preparation/hold_refinement_rc1.py": {
+        "snapshot": "models/v3/source/src/mdac2/data_preparation/hold_refinement_rc1.py",
+        "sha256": "1c3042b9862edba81b0eb707884af0c8fe8205ec935a6fe54ce2188b40aa6e17"
+      },
+      "src/mdac2/data_preparation/joint_evaluation.py": {
+        "snapshot": "models/v3/source/src/mdac2/data_preparation/joint_evaluation.py",
+        "sha256": "2aa431f06adf63af602065f295b8a5325a583f7df8662f9216177462b50d868d"
+      },
+      "src/mdac2/data_preparation/playtest_postprocess.py": {
+        "snapshot": "models/v3/source/src/mdac2/data_preparation/playtest_postprocess.py",
+        "sha256": "3125f59265388173138c025e88b4ded1e5cdbd033ef70584b9f72be7972f67e0"
+      },
+      "src/mdac2/data_preparation/six_export.py": {
+        "snapshot": "models/v3/source/src/mdac2/data_preparation/six_export.py",
+        "sha256": "ec08a39a04cacbb14305b15a8d7767cedb087c4a7926dcbd1a9babc64769e9f2"
+      },
+      "src/mdac2/data_preparation/training_chart.py": {
+        "snapshot": "models/v3/source/src/mdac2/data_preparation/training_chart.py",
+        "sha256": "0b65546c25c5e6d3a4eaae25969caa5810c90e6bc2ea4d837711ffcdf8f09d62"
+      },
+      "tests/unit/test_global_postprocess.py": {
+        "snapshot": "models/v3/source/tests/unit/test_global_postprocess.py",
+        "sha256": "fb037c9e6e9463e13d1d421bdfe7e0433c682c372312d8531bd232a1cd438e94"
+      },
+      "tools/freeze_model_v3.py": {
+        "snapshot": "models/v3/source/tools/freeze_model_v3.py",
+        "sha256": "7a60e9c90f94dd5ddb77aca5396f6cd8f423b0effb0d0b50607096055db758ee"
+      },
+      "tools/package_predicted_playtest.py": {
+        "snapshot": "models/v3/source/tools/package_predicted_playtest.py",
+        "sha256": "014e588cf1c3b7ab98bceb41d1e0e5e23effe61ce1a9aa85625e102f7e7c2138"
+      },
+      "tools/generate_current_playtest.py": {
+        "snapshot": "models/v3/source/tools/generate_current_playtest.py",
+        "sha256": "faab31d83be9bf1c9e2e1bfee1f1e48ed1764aef318c830730655158087c3427"
+      },
+      "tools/replay_global_postprocess.py": {
+        "snapshot": "models/v3/source/tools/replay_global_postprocess.py",
+        "sha256": "f0dc7a5b06949ced72bb813c1d8bb23055bbe52b236a6298f69fc10bb6526a4a"
+      }
+    },
+    "evidence": {
+      "completion.json": {
+        "snapshot": "models/v3/evidence/completion.json",
+        "sha256": "1ff0639a139dd4095ef8049684f36c91847f348e75ab56fdd6f80e4b0e01cceb"
+      },
+      "replay/identity.json": {
+        "snapshot": "models/v3/evidence/identity.json",
+        "sha256": "44de3cd0a888ddd6f299271a7a2a2499549eda2ef777e5d799266b5daec0c7e5"
+      },
+      "replay/comparison.json": {
+        "snapshot": "models/v3/evidence/comparison.json",
+        "sha256": "cd4f97ee778c4214fcfe4ec19e42678734e6c9e9b3be15c4baaf9c39a541cc2c"
+      }
+    }
+  },
+  "validation": {
+    "dataset_manifest_sha256": "34add12c1c47fc99afc04ae1fa9f06e968d5c2c50db41cb32a047f033668eb71",
+    "train_charts": 172,
+    "validation_charts": 22,
+    "previously_used_test_charts": 25,
+    "quarantined_charts": 127,
+    "metrics": {
+      "charts": 22,
+      "audio_seconds": 3297.6238333333336,
+      "sampling": {
+        "tp": 11171,
+        "fp": 4614,
+        "fn": 2442,
+        "precision": 0.7076971808679126,
+        "recall": 0.8206126496731065,
+        "f1": 0.7599836723586638,
+        "reference_count": 13613,
+        "predicted_count": 15785
+      },
+      "lanes": {
+        "ground": {
+          "tp": 3491,
+          "fp": 4954,
+          "fn": 4180,
+          "precision": 0.4133806986382475,
+          "recall": 0.45509060096467213,
+          "f1": 0.43323405311491686,
+          "reference_count": 7671,
+          "predicted_count": 8445
+        },
+        "air": {
+          "tp": 3397,
+          "fp": 5029,
+          "fn": 4030,
+          "precision": 0.4031568953239972,
+          "recall": 0.4573852161034065,
+          "f1": 0.4285624172080994,
+          "reference_count": 7427,
+          "predicted_count": 8426
+        }
+      },
+      "six_classes": {
+        "light": {
+          "tp": 3547,
+          "fp": 9763,
+          "fn": 6826,
+          "precision": 0.2664913598797896,
+          "recall": 0.34194543526462934,
+          "f1": 0.29953975425410634,
+          "reference_count": 10373,
+          "predicted_count": 13310
+        },
+        "heavy": {
+          "tp": 101,
+          "fp": 911,
+          "fn": 1615,
+          "precision": 0.09980237154150198,
+          "recall": 0.058857808857808856,
+          "f1": 0.07404692082111437,
+          "reference_count": 1716,
+          "predicted_count": 1012
+        },
+        "extra_heavy": {
+          "tp": 3,
+          "fp": 11,
+          "fn": 18,
+          "precision": 0.21428571428571427,
+          "recall": 0.14285714285714285,
+          "f1": 0.17142857142857143,
+          "reference_count": 21,
+          "predicted_count": 14
+        },
+        "gemini": {
+          "tp": 176,
+          "fp": 1600,
+          "fn": 1070,
+          "precision": 0.0990990990990991,
+          "recall": 0.14125200642054575,
+          "f1": 0.11647915287888816,
+          "reference_count": 1246,
+          "predicted_count": 1776
+        },
+        "hold": {
+          "tp": 96,
+          "fp": 663,
+          "fn": 1739,
+          "precision": 0.12648221343873517,
+          "recall": 0.05231607629427793,
+          "f1": 0.07401696222050887,
+          "reference_count": 1835,
+          "predicted_count": 759
+        },
+        "gear": {
+          "tp": 0,
+          "fp": 0,
+          "fn": 0,
+          "precision": 0.0,
+          "recall": 0.0,
+          "f1": 0.0,
+          "reference_count": 0,
+          "predicted_count": 0
+        }
+      },
+      "lane_classes": {
+        "ground": {
+          "light": {
+            "tp": 1774,
+            "fp": 4832,
+            "fn": 3481,
+            "precision": 0.2685437481077808,
+            "recall": 0.3375832540437678,
+            "f1": 0.2991316077902369,
+            "reference_count": 5255,
+            "predicted_count": 6606
+          },
+          "heavy": {
+            "tp": 52,
+            "fp": 438,
+            "fn": 832,
+            "precision": 0.10612244897959183,
+            "recall": 0.058823529411764705,
+            "f1": 0.07569141193595343,
+            "reference_count": 884,
+            "predicted_count": 490
+          },
+          "extra_heavy": {
+            "tp": 3,
+            "fp": 7,
+            "fn": 18,
+            "precision": 0.3,
+            "recall": 0.14285714285714285,
+            "f1": 0.1935483870967742,
+            "reference_count": 21,
+            "predicted_count": 10
+          },
+          "gemini": {
+            "tp": 88,
+            "fp": 801,
+            "fn": 535,
+            "precision": 0.09898762654668167,
+            "recall": 0.14125200642054575,
+            "f1": 0.1164021164021164,
+            "reference_count": 623,
+            "predicted_count": 889
+          },
+          "hold": {
+            "tp": 61,
+            "fp": 389,
+            "fn": 878,
+            "precision": 0.13555555555555557,
+            "recall": 0.06496272630457935,
+            "f1": 0.08783297336213103,
+            "reference_count": 939,
+            "predicted_count": 450
+          },
+          "gear": {
+            "tp": 0,
+            "fp": 0,
+            "fn": 0,
+            "precision": 0.0,
+            "recall": 0.0,
+            "f1": 0.0,
+            "reference_count": 0,
+            "predicted_count": 0
+          }
+        },
+        "air": {
+          "light": {
+            "tp": 1773,
+            "fp": 4931,
+            "fn": 3345,
+            "precision": 0.2644689737470167,
+            "recall": 0.34642438452520513,
+            "f1": 0.2999492471663001,
+            "reference_count": 5118,
+            "predicted_count": 6704
+          },
+          "heavy": {
+            "tp": 49,
+            "fp": 473,
+            "fn": 783,
+            "precision": 0.09386973180076628,
+            "recall": 0.05889423076923077,
+            "f1": 0.0723781388478582,
+            "reference_count": 832,
+            "predicted_count": 522
+          },
+          "extra_heavy": {
+            "tp": 0,
+            "fp": 4,
+            "fn": 0,
+            "precision": 0.0,
+            "recall": 0.0,
+            "f1": 0.0,
+            "reference_count": 0,
+            "predicted_count": 4
+          },
+          "gemini": {
+            "tp": 88,
+            "fp": 799,
+            "fn": 535,
+            "precision": 0.0992108229988726,
+            "recall": 0.14125200642054575,
+            "f1": 0.11655629139072848,
+            "reference_count": 623,
+            "predicted_count": 887
+          },
+          "hold": {
+            "tp": 35,
+            "fp": 274,
+            "fn": 861,
+            "precision": 0.11326860841423948,
+            "recall": 0.0390625,
+            "f1": 0.058091286307053944,
+            "reference_count": 896,
+            "predicted_count": 309
+          },
+          "gear": {
+            "tp": 0,
+            "fp": 0,
+            "fn": 0,
+            "precision": 0.0,
+            "recall": 0.0,
+            "f1": 0.0,
+            "reference_count": 0,
+            "predicted_count": 0
+          }
+        }
+      },
+      "macro_class_f1": 0.12258522693386487,
+      "holds": {
+        "hold_head": {
+          "tp": 96,
+          "fp": 663,
+          "fn": 1739,
+          "precision": 0.12648221343873517,
+          "recall": 0.05231607629427793,
+          "f1": 0.07401696222050887,
+          "reference_count": 1835,
+          "predicted_count": 759
+        },
+        "hold_tail": {
+          "tp": 62,
+          "fp": 697,
+          "fn": 1773,
+          "precision": 0.08168642951251646,
+          "recall": 0.033787465940054495,
+          "f1": 0.047802621434078645,
+          "reference_count": 1835,
+          "predicted_count": 759
+        },
+        "hold_joint": {
+          "tp": 28,
+          "fp": 731,
+          "fn": 1807,
+          "precision": 0.03689064558629776,
+          "recall": 0.015258855585831062,
+          "f1": 0.02158828064764842,
+          "reference_count": 1835,
+          "predicted_count": 759
+        }
+      },
+      "extra_heavy": {
+        "tp": 3,
+        "fp": 11,
+        "fn": 18,
+        "precision": 0.21428571428571427,
+        "recall": 0.14285714285714285,
+        "f1": 0.17142857142857143,
+        "reference_count": 21,
+        "predicted_count": 14,
+        "false_positives_per_minute": 0.20014411387027517
+      },
+      "matched_onset_mean_absolute_ms": 10.339629397547343,
+      "matched_onset_p95_ms": 28.999999999996362,
+      "rule_rejections": 0,
+      "candidate_count": 16111,
+      "rule_rejection_rate": 0.0,
+      "decode_rejections": {},
+      "onset_tolerance_ms": 50.0,
+      "hold_tail_tolerance_ms": 100,
+      "unit": "six-class and hold metrics use actual lane entities; sampling collapses exact co-located starts",
+      "masks": "excluded ghost/item cells and quantization collisions excluded from scoring",
+      "human_review": "pending; community reference is not gold"
+    },
+    "objective_quality": "Reused validation; stricter deletion slightly lowers reference matching. Not an independent test."
+  },
+  "human_feedback": {
+    "selection_quote": "更改为v3，保留v2",
+    "prior_revision_quote": "嗯，整体上还是不错的",
+    "scope": "V3 designation authorized; newest strict transfer/drop revision has no explicit real-play feedback yet.",
+    "automated_game_verification": false,
+    "broad_game_acceptance": false
+  },
+  "playtests": [
+    {
+      "song": "琵琶行",
+      "delivery": "E:\\OneDrive - stu.sau.edu.cn\\MuseDash\\Custom_Albums\\琵琶行_mikee_MDAC2试玩_V3.mdm",
+      "sha256": "baff063d10c1cfa8b4aeb568ebb9bf1889cff1496d89d026c55e2f828df49d96",
+      "parent_sha256": "0aa62158edb94c0f0992041ae9b625aa32f3e9482b56cfbae109c6fec4585f1e",
+      "events": 757,
+      "chart_and_audio_unchanged": true,
+      "only_display_titles_changed": true,
+      "game_verified": false,
+      "human_listening": "pending_for_this_strict_revision"
+    },
+    {
+      "song": "Snow Song Show",
+      "delivery": "E:\\OneDrive - stu.sau.edu.cn\\MuseDash\\Custom_Albums\\Snow Song Show_mikee_MDAC2试玩_V3.mdm",
+      "sha256": "cae76878ef06556ff3f64edd8e181281f70615002617d9fcc2d2c797a28b33a7",
+      "parent_sha256": "87476a20c0a8625f6b583c60f8aa919e5504651183346047f9e9ff6a754b7a45",
+      "events": 1142,
+      "chart_and_audio_unchanged": true,
+      "only_display_titles_changed": true,
+      "game_verified": false,
+      "human_listening": "pending_for_this_strict_revision"
+    }
+  ],
+  "neural_weights_retrained": false,
+  "desktop_default_pipeline_changed": false,
+  "supervised_generation_entrypoint": "tools/generate_current_playtest.py",
+  "defaults": {
+    "schema_version": 1,
+    "scope": "all new supervised automatic generation; frozen historical reproduction remains explicit",
+    "base_model": "v3",
+    "inference_profile": "v2-vocal-soft-bias-v1",
+    "postprocess_profile": "global-postprocess-1ms-v2",
+    "postprocess_module": "mdac2.data_preparation.global_postprocess",
+    "storage_step_seconds": 0.001,
+    "export_module": "mdac2.data_preparation.six_export",
+    "delivery_directory": "E:/OneDrive - stu.sau.edu.cn/MuseDash/Custom_Albums",
+    "new_web_preview": false,
+    "model_weights_changed": false,
+    "human_acceptance": "pending"
+  },
+  "application_tag_changed": false,
+  "weight_distribution": "Local weights excluded from Git; no music or training data distributed."
+}

@@ -1,0 +1,569 @@
+{
+  "schema_version": 1,
+  "recipe_id": "R1",
+  "series": "R",
+  "product": "MDAC2",
+  "application_version": "0.1.0",
+  "release_date": "2026-10-17",
+  "created_at": "2026-10-17T14:28:12.681543+08:00",
+  "status": "user_selected_playtest_recipe",
+  "base_model": {
+    "model_id": "v2",
+    "display_name": "V2",
+    "manifest": "models/v2/manifest.json",
+    "manifest_sha256": "9ae31c1894420492e4eae64cf88989d3f199523d00b78dbc7801c30642896562"
+  },
+  "checkpoints": {
+    "onset": {
+      "path": "models/v2/weights/onset.pt",
+      "sha256": "bf4b4bd0b33fea90b9f9f4606127ea1d0cf0a4bbd2bea31d153953f81e5d8d50",
+      "bytes": 40048515,
+      "source_experiment": "supervised-dual-v1-20260928",
+      "source_best_epoch": 3,
+      "parameters": 3331074,
+      "architecture": "vocals-accompaniment-onset-v1"
+    },
+    "arrangement": {
+      "path": "models/v2/weights/arrangement.pt",
+      "sha256": "426c1e6a358050a8bcf716638b553a3c1dbe2b42761fbd0c48ccf364a31853d5",
+      "bytes": 132008058,
+      "source_experiment": "supervised-dual-v6-20260930",
+      "source_best_epoch": 18,
+      "parameters": 10993122,
+      "architecture": "mix-bigru512-causal-history256-v6"
+    }
+  },
+  "new_neural_weights": false,
+  "origin_experiment": "tools/private/community/vocal-grid-r2-20261017",
+  "origin_policy": "vocal-lookahead-r2 + playtest-grid-r2",
+  "compatibility": {
+    "supported_base_models": [
+      "v2"
+    ],
+    "other_models_verified": false,
+    "composition": "Build from neural candidates and regenerate arrangement. Do not append to already postprocessed V2 chart.",
+    "shared_with_v2": [
+      "single_lane_phrases",
+      "training_only_run_prior",
+      "evidence_based_climax_candidates",
+      "similar_passage_mirroring",
+      "legality_checks"
+    ],
+    "replaces_v2": [
+      "hold_tail_extension_250ms"
+    ],
+    "extends_v2": [
+      "vocal_lookahead_and_lower_thresholds",
+      "vocal_gate_on_climax_candidates",
+      "5ms_fixed_time_grid",
+      "hold_head_tail_alignment_100ms"
+    ],
+    "old_two_second_vocal_latch": false
+  },
+  "pipeline": [
+    "one_second_vocal_routing",
+    "frozen_arrangement_full_song_generated_history",
+    "vocal_gated_climax_candidates",
+    "single_lane_phrases",
+    "5ms_snap",
+    "hold_endpoint_alignment",
+    "similar_passage_mirroring",
+    "read_only_validation",
+    "fixed240_BMS_export"
+  ],
+  "vocal_policy": {
+    "version": "vocal-lookahead-r2",
+    "hop_seconds": 0.01,
+    "release_seconds": 0.0,
+    "attack_frames": 3,
+    "vocal_relative_db": -26.0,
+    "vocal_floor_below_mix_peak_db": 45.0,
+    "absolute_mel_power_floor_db": -50.0,
+    "novelty_threshold": 0.16,
+    "novelty_prominence": 0.06,
+    "novelty_floor": 0.08,
+    "support_radius_frames": 4,
+    "baseline_threshold": 0.3,
+    "vocal_model_threshold": 0.08,
+    "vocal_spacing_frames": 6,
+    "lookahead_seconds": 1.0,
+    "minimum_coverage": 0.25,
+    "minimum_segment_seconds": 0.08,
+    "maximum_internal_gap_seconds": 0.08,
+    "minimum_occupied_fraction": 0.125,
+    "copied_stem_similarity": 0.995,
+    "copied_stem_relative_db": -12.0
+  },
+  "export_grid": {
+    "version": "fixed-240-50-r2",
+    "bpm": 240,
+    "positions_per_beat": 50,
+    "beats_per_measure": 4,
+    "positions_per_measure": 200,
+    "step_seconds": 0.005,
+    "origin_seconds": 0.0,
+    "song_tempo_estimated": false
+  },
+  "shared_postprocessing_parameters": {
+    "phrase_gap": 0.65,
+    "prior_weight": 1.0,
+    "flip_cost": 0.7,
+    "alternation_cost": 0.65,
+    "climax_min_seconds": 6.0,
+    "candidate_threshold": 0.2,
+    "candidate_spacing": 0.1,
+    "added_fraction": 0.15,
+    "similarity_threshold": 0.82,
+    "repeat_match_seconds": 0.06,
+    "repeat_coverage": 0.8,
+    "max_seconds": 600.0
+  },
+  "prior": {
+    "path": "models/v2/weights/run-prior.json",
+    "sha256": "6a27352cb2c0f9d6fc97f8f06d5742274d8c959a9fd5863fffad96568b875558"
+  },
+  "hold_alignment": {
+    "candidate_tolerance_seconds": 0.1,
+    "note_anchor": "same_or_opposite_lane",
+    "hold_pair_target": "mean_then_5ms_grid",
+    "relations": [
+      "head_head",
+      "tail_tail",
+      "tail_head"
+    ],
+    "minimum_duration_seconds": 0.03,
+    "old_250ms_tail_extension": false
+  },
+  "sources": {
+    "tools/explore_vocal_grid_r2.py": {
+      "snapshot": "recipes/R1/source/tools/explore_vocal_grid_r2.py",
+      "sha256": "e14ffda6d019e3fb98d81e06034abf88b5df9d3cde8c066f5f6c28c356603263"
+    },
+    "src/mdac2/data_preparation/vocal_priority_r2.py": {
+      "snapshot": "recipes/R1/source/src/mdac2/data_preparation/vocal_priority_r2.py",
+      "sha256": "4fe3c573cd973af8ef4379cee8f211710ebbd22c3bb5463c3dd431345a985839"
+    },
+    "src/mdac2/data_preparation/vocal_priority.py": {
+      "snapshot": "recipes/R1/source/src/mdac2/data_preparation/vocal_priority.py",
+      "sha256": "f1ecc8af10838ca1f688d3ad64647d03b513ee9989fe35ba19f703072261ddcb"
+    },
+    "src/mdac2/data_preparation/fixed_grid_r2.py": {
+      "snapshot": "recipes/R1/source/src/mdac2/data_preparation/fixed_grid_r2.py",
+      "sha256": "bc64ef3c1953b31483e4df73d5b11b15841ee18ffbb2640acb8a295e675007c0"
+    },
+    "src/mdac2/data_preparation/six_grid_export_r2.py": {
+      "snapshot": "recipes/R1/source/src/mdac2/data_preparation/six_grid_export_r2.py",
+      "sha256": "377824eca9d0682d801c95eea004955b9f6a6e35e56ce0866055cd9b8d8051b7"
+    },
+    "tools/build_vocal_grid_review_r2.py": {
+      "snapshot": "recipes/R1/source/tools/build_vocal_grid_review_r2.py",
+      "sha256": "9167957a1ce4a9c0f690d7e0ed4f0af34de517d856c443af97696468984082b8"
+    },
+    "tools/package_grid_playtest_r2.py": {
+      "snapshot": "recipes/R1/source/tools/package_grid_playtest_r2.py",
+      "sha256": "1caf4724ac883aed096ee087bc9e934210b036b07ac773e7a45e7d8ca8935375"
+    },
+    "tools/ablate_vocal_lookahead_r2.py": {
+      "snapshot": "recipes/R1/source/tools/ablate_vocal_lookahead_r2.py",
+      "sha256": "b6c6dfe83cc4fc56cf6bd2029b3501bc8eb9012ea0215a49c0eccb059aef0afe"
+    },
+    "tools/analyze_grid_effects_r2.py": {
+      "snapshot": "recipes/R1/source/tools/analyze_grid_effects_r2.py",
+      "sha256": "297cea1e1816f69c32c964890d1ef3eb3ef9f950083e997a53e139b079ec1745"
+    },
+    "tests/unit/test_vocal_grid_r2.py": {
+      "snapshot": "recipes/R1/source/tests/unit/test_vocal_grid_r2.py",
+      "sha256": "d0ae80567e1c77ccc8ab3d6d815af9ad81681bbbadf951de25ca1a3b41dbd962"
+    },
+    "tools/private/community/vocal-grid-r2-20261017/final_audit.py": {
+      "snapshot": "recipes/R1/source/tools/private/community/vocal-grid-r2-20261017/final_audit.py",
+      "sha256": "2397db1b9343fba07bca949e4e46345c980597a71ecac3d120ce1767ae6c304e"
+    },
+    "src/mdac2/data_preparation/playtest_postprocess.py": {
+      "snapshot": "recipes/R1/source/src/mdac2/data_preparation/playtest_postprocess.py",
+      "sha256": "3125f59265388173138c025e88b4ded1e5cdbd033ef70584b9f72be7972f67e0"
+    },
+    "tools/refine_model_v1_playtest.py": {
+      "snapshot": "recipes/R1/source/tools/refine_model_v1_playtest.py",
+      "sha256": "8450d6a612e2663068f4b8aac20334678df6d6ced41976998fcc03bd1de0acad"
+    },
+    "tools/build_playtest_comparison.py": {
+      "snapshot": "recipes/R1/source/tools/build_playtest_comparison.py",
+      "sha256": "b019ce97658550619573e12d856a99e7ef85ea753f5d27792ebf67a923913ba6"
+    }
+  },
+  "evidence": {
+    "completion.json": {
+      "path": "tools/private/community/vocal-grid-r2-20261017/completion.json",
+      "sha256": "268b0bc08ac80f55e35ef5a672b72a6cafcc9ad3f405fa2b26a543a7a1433985"
+    },
+    "validation/validation.json": {
+      "path": "tools/private/community/vocal-grid-r2-20261017/validation/validation.json",
+      "sha256": "30b0dae1edd11a07835762453b635574341285b982e076a49a89ca09f8f053e5"
+    },
+    "onset-ablation.json": {
+      "path": "tools/private/community/vocal-grid-r2-20261017/onset-ablation.json",
+      "sha256": "96eb343b12cdeabf351327ee048939b140af7bb7140b732baeb20971bcfc9cbf"
+    },
+    "grid-diagnostics.json": {
+      "path": "tools/private/community/vocal-grid-r2-20261017/grid-diagnostics.json",
+      "sha256": "00d6a14111530a6b230ae1c826e02738e2c6d3c80d3d80d3c180a8674777fcae"
+    },
+    "http-check.json": {
+      "path": "tools/private/community/vocal-grid-r2-20261017/http-check.json",
+      "sha256": "e4404bb9c66e08910819a1c388e75f951fa42ae3c9f72bba3ec15487a39be78a"
+    },
+    "full-tests.xml": {
+      "path": "tools/private/community/vocal-grid-r2-20261017/full-tests.xml",
+      "sha256": "80b1b2a2a42d7234ec114d0f733ec579991ac3b56ed5de93a2786cb253195761"
+    }
+  },
+  "validation": {
+    "dataset_manifest_sha256": "34add12c1c47fc99afc04ae1fa9f06e968d5c2c50db41cb32a047f033668eb71",
+    "train": 172,
+    "validation": 22,
+    "previously_used_test": 25,
+    "quarantine": 127,
+    "independent_test": false,
+    "metrics": {
+      "charts": 22,
+      "audio_seconds": 3297.6238333333336,
+      "sampling": {
+        "tp": 11177,
+        "fp": 4502,
+        "fn": 2436,
+        "precision": 0.7128643408380636,
+        "recall": 0.8210534048336149,
+        "f1": 0.7631435204151304,
+        "reference_count": 13613,
+        "predicted_count": 15679
+      },
+      "lanes": {
+        "ground": {
+          "tp": 3638,
+          "fp": 5126,
+          "fn": 4033,
+          "precision": 0.4151072569602921,
+          "recall": 0.474253682701082,
+          "f1": 0.44271372071797993,
+          "reference_count": 7671,
+          "predicted_count": 8764
+        },
+        "air": {
+          "tp": 3256,
+          "fp": 4794,
+          "fn": 4171,
+          "precision": 0.404472049689441,
+          "recall": 0.43840043086037433,
+          "f1": 0.4207533759772566,
+          "reference_count": 7427,
+          "predicted_count": 8050
+        }
+      },
+      "six_classes": {
+        "light": {
+          "tp": 3645,
+          "fp": 9671,
+          "fn": 6728,
+          "precision": 0.2737308501051367,
+          "recall": 0.35139303962209584,
+          "f1": 0.30773776858457513,
+          "reference_count": 10373,
+          "predicted_count": 13316
+        },
+        "heavy": {
+          "tp": 103,
+          "fp": 822,
+          "fn": 1613,
+          "precision": 0.11135135135135135,
+          "recall": 0.060023310023310024,
+          "f1": 0.07800075728890572,
+          "reference_count": 1716,
+          "predicted_count": 925
+        },
+        "extra_heavy": {
+          "tp": 4,
+          "fp": 9,
+          "fn": 17,
+          "precision": 0.3076923076923077,
+          "recall": 0.19047619047619047,
+          "f1": 0.23529411764705882,
+          "reference_count": 21,
+          "predicted_count": 13
+        },
+        "gemini": {
+          "tp": 212,
+          "fp": 1656,
+          "fn": 1034,
+          "precision": 0.11349036402569593,
+          "recall": 0.17014446227929375,
+          "f1": 0.1361592806679512,
+          "reference_count": 1246,
+          "predicted_count": 1868
+        },
+        "hold": {
+          "tp": 116,
+          "fp": 605,
+          "fn": 1719,
+          "precision": 0.1608876560332871,
+          "recall": 0.06321525885558583,
+          "f1": 0.09076682316118936,
+          "reference_count": 1835,
+          "predicted_count": 721
+        },
+        "gear": {
+          "tp": 0,
+          "fp": 0,
+          "fn": 0,
+          "precision": 0.0,
+          "recall": 0.0,
+          "f1": 0.0,
+          "reference_count": 0,
+          "predicted_count": 0
+        }
+      },
+      "lane_classes": {
+        "ground": {
+          "light": {
+            "tp": 1932,
+            "fp": 5018,
+            "fn": 3323,
+            "precision": 0.2779856115107914,
+            "recall": 0.36764985727878213,
+            "f1": 0.31659156083572304,
+            "reference_count": 5255,
+            "predicted_count": 6950
+          },
+          "heavy": {
+            "tp": 58,
+            "fp": 389,
+            "fn": 826,
+            "precision": 0.1297539149888143,
+            "recall": 0.06561085972850679,
+            "f1": 0.08715251690458302,
+            "reference_count": 884,
+            "predicted_count": 447
+          },
+          "extra_heavy": {
+            "tp": 4,
+            "fp": 8,
+            "fn": 17,
+            "precision": 0.3333333333333333,
+            "recall": 0.19047619047619047,
+            "f1": 0.24242424242424243,
+            "reference_count": 21,
+            "predicted_count": 12
+          },
+          "gemini": {
+            "tp": 106,
+            "fp": 827,
+            "fn": 517,
+            "precision": 0.11361200428724544,
+            "recall": 0.17014446227929375,
+            "f1": 0.13624678663239073,
+            "reference_count": 623,
+            "predicted_count": 933
+          },
+          "hold": {
+            "tp": 73,
+            "fp": 364,
+            "fn": 866,
+            "precision": 0.16704805491990846,
+            "recall": 0.0777422790202343,
+            "f1": 0.10610465116279069,
+            "reference_count": 939,
+            "predicted_count": 437
+          },
+          "gear": {
+            "tp": 0,
+            "fp": 0,
+            "fn": 0,
+            "precision": 0.0,
+            "recall": 0.0,
+            "f1": 0.0,
+            "reference_count": 0,
+            "predicted_count": 0
+          }
+        },
+        "air": {
+          "light": {
+            "tp": 1713,
+            "fp": 4653,
+            "fn": 3405,
+            "precision": 0.2690857681432611,
+            "recall": 0.3347010550996483,
+            "f1": 0.29832810867293624,
+            "reference_count": 5118,
+            "predicted_count": 6366
+          },
+          "heavy": {
+            "tp": 45,
+            "fp": 433,
+            "fn": 787,
+            "precision": 0.09414225941422594,
+            "recall": 0.054086538461538464,
+            "f1": 0.06870229007633588,
+            "reference_count": 832,
+            "predicted_count": 478
+          },
+          "extra_heavy": {
+            "tp": 0,
+            "fp": 1,
+            "fn": 0,
+            "precision": 0.0,
+            "recall": 0.0,
+            "f1": 0.0,
+            "reference_count": 0,
+            "predicted_count": 1
+          },
+          "gemini": {
+            "tp": 106,
+            "fp": 829,
+            "fn": 517,
+            "precision": 0.11336898395721925,
+            "recall": 0.17014446227929375,
+            "f1": 0.13607188703465983,
+            "reference_count": 623,
+            "predicted_count": 935
+          },
+          "hold": {
+            "tp": 43,
+            "fp": 241,
+            "fn": 853,
+            "precision": 0.15140845070422534,
+            "recall": 0.04799107142857143,
+            "f1": 0.07288135593220339,
+            "reference_count": 896,
+            "predicted_count": 284
+          },
+          "gear": {
+            "tp": 0,
+            "fp": 0,
+            "fn": 0,
+            "precision": 0.0,
+            "recall": 0.0,
+            "f1": 0.0,
+            "reference_count": 0,
+            "predicted_count": 0
+          }
+        }
+      },
+      "macro_class_f1": 0.14132645789161338,
+      "holds": {
+        "hold_head": {
+          "tp": 116,
+          "fp": 605,
+          "fn": 1719,
+          "precision": 0.1608876560332871,
+          "recall": 0.06321525885558583,
+          "f1": 0.09076682316118936,
+          "reference_count": 1835,
+          "predicted_count": 721
+        },
+        "hold_tail": {
+          "tp": 61,
+          "fp": 660,
+          "fn": 1774,
+          "precision": 0.08460471567267684,
+          "recall": 0.0332425068119891,
+          "f1": 0.04773082942097027,
+          "reference_count": 1835,
+          "predicted_count": 721
+        },
+        "hold_joint": {
+          "tp": 32,
+          "fp": 689,
+          "fn": 1803,
+          "precision": 0.044382801664355064,
+          "recall": 0.017438692098092644,
+          "f1": 0.025039123630672927,
+          "reference_count": 1835,
+          "predicted_count": 721
+        }
+      },
+      "extra_heavy": {
+        "tp": 4,
+        "fp": 9,
+        "fn": 17,
+        "precision": 0.3076923076923077,
+        "recall": 0.19047619047619047,
+        "f1": 0.23529411764705882,
+        "reference_count": 21,
+        "predicted_count": 13,
+        "false_positives_per_minute": 0.16375427498477058
+      },
+      "matched_onset_mean_absolute_ms": 10.5480003578777,
+      "matched_onset_p95_ms": 29.999999999999716,
+      "rule_rejections": 0,
+      "candidate_count": 15930,
+      "rule_rejection_rate": 0.0,
+      "decode_rejections": {},
+      "onset_tolerance_ms": 50.0,
+      "hold_tail_tolerance_ms": 100,
+      "unit": "six-class and hold metrics use actual lane entities; sampling collapses exact co-located starts",
+      "masks": "excluded ghost/item cells and quantization collisions excluded from scoring",
+      "human_review": "pending; community reference is not gold",
+      "macro_five_class_f1": 0.16959174946993605,
+      "micro_five_class": {
+        "tp": 4080,
+        "fp": 12763,
+        "fn": 11111,
+        "precision": 0.24223713115240753,
+        "recall": 0.2685800803107103,
+        "f1": 0.25472935006555536,
+        "reference_count": 15191,
+        "predicted_count": 16843
+      }
+    },
+    "limitations": [
+      "5ms is a storage/quantization grid, not measured musical beats or a proven stutter remedy.",
+      "Source heuristics can miss real vocal activity or accept instrument leakage; low thresholds increase false positives.",
+      "The unchanged joint onset network cannot recover starts with no candidate response; fallback is not a mix-only model.",
+      "Route-only ablation has higher raw F1 than full lowered-threshold r2, while r2 prioritizes recall; not claimed best configuration.",
+      "Hold alignment has lower reference head-tail F1 than before alignment; subjective preference still pending.",
+      "Repeated validation is not independent test; two user songs were not used to choose thresholds.",
+      "Separate CLI experiment and packages; frozen release v2 and default desktop generation unchanged."
+    ]
+  },
+  "human_feedback": {
+    "date": "2026-10-17",
+    "user_quote": "这版体感很不错定为R1版本，刚才我们提到的那些后处理中有些是适用于V2版本的，同时写好文档，V系列和R系列的区别。",
+    "status": "positive_experience_user_selected",
+    "scope": "Current delivered r2 version; user did not separately specify per-song acceptance",
+    "per_song_acceptance_not_inferred": true,
+    "automated_game_verification": false,
+    "broad_game_acceptance": false
+  },
+  "playtests": [
+    {
+      "song": "琵琶行",
+      "delivery": "E:\\下载\\琵琶行_mikee_MDAC2试玩_R1.mdm",
+      "sha256": "2d2ff22e61a2df2f223c883b202eec2697bd155517e48eca51eaa79f282d51d3",
+      "origin": "E:\\下载\\琵琶行_mikee_MDAC2试玩_人声前瞻r2_5ms.mdm",
+      "byte_identical_to_user_selected_r2": true,
+      "internal_title_preserved": true,
+      "preview": "http://127.0.0.1:8783/pipa/index.html"
+    },
+    {
+      "song": "Snow Song Show",
+      "delivery": "E:\\下载\\Snow Song Show_mikee_MDAC2试玩_R1.mdm",
+      "sha256": "9c4f6ddb1eacd9f746e207ec92193df9579173249426f18d6632892be0bf5d8e",
+      "origin": "E:\\下载\\Snow Song Show_mikee_MDAC2试玩_人声前瞻r2_5ms.mdm",
+      "byte_identical_to_user_selected_r2": true,
+      "internal_title_preserved": true,
+      "preview": "http://127.0.0.1:8783/snow/index.html"
+    }
+  ],
+  "naming_note": "Official uppercase R1 is the selected recipe, not old vocal experiment r1 or playtest-postprocess-r1.1.",
+  "desktop_default_pipeline_changed": false,
+  "entrypoints": {
+    "generate": "tools/explore_vocal_grid_r2.py",
+    "package": "tools/package_grid_playtest_r2.py",
+    "review": "tools/build_vocal_grid_review_r2.py"
+  },
+  "registration_command": [
+    "E:\\project\\MDAC2\\.venv\\Scripts\\python.exe",
+    "tools/freeze_recipe_r1.py"
+  ],
+  "registration_tool_sha256": "db711080e37bba20fc13216dc82454a6309332256f69e9b8d2486988dd1b5b40"
+}

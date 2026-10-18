@@ -1,0 +1,32 @@
+{
+  "status": "completed",
+  "client_date": "2026-10-18",
+  "tests_passed": 73,
+  "charts_checked": 24,
+  "packages": [
+    {
+      "song": "pipa",
+      "path": "E:\\OneDrive - stu.sau.edu.cn\\MuseDash\\Custom_Albums\\琵琶行_mikee_V2人声增强_全局避让修订1.mdm",
+      "sha256": "0aa62158edb94c0f0992041ae9b625aa32f3e9482b56cfbae109c6fec4585f1e",
+      "events": 757,
+      "hold_geometry_unchanged": true,
+      "old_package_unchanged": true,
+      "guarded_clicks": 0
+    },
+    {
+      "song": "snow",
+      "path": "E:\\OneDrive - stu.sau.edu.cn\\MuseDash\\Custom_Albums\\Snow Song Show_mikee_V2人声增强_全局避让修订1.mdm",
+      "sha256": "87476a20c0a8625f6b583c60f8aa919e5504651183346047f9e9ff6a754b7a45",
+      "events": 1142,
+      "hold_geometry_unchanged": true,
+      "old_package_unchanged": true,
+      "guarded_clicks": 0
+    }
+  ],
+  "neural_outputs_reused": true,
+  "model_weights_changed": false,
+  "web_generated": false,
+  "hearing_and_gameplay": "pending",
+  "exclusive_cut_actual_triggers": 0,
+  "exclusive_cut_synthetic_tests_passed": true
+}

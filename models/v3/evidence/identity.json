@@ -1,0 +1,67 @@
+{
+  "command": [
+    "E:\\project\\MDAC2\\.venv\\Scripts\\python.exe",
+    "tools/replay_global_postprocess.py",
+    "--parent",
+    "tools/private/community/global-1ms-vocal-v1-20261017",
+    "--output",
+    "tools/private/community/global-1ms-conflicts-v2-20261017/replay"
+  ],
+  "parent": "E:\\project\\MDAC2\\tools\\private\\community\\global-1ms-vocal-v1-20261017",
+  "defaults": {
+    "schema_version": 1,
+    "scope": "all new supervised automatic generation; frozen historical reproduction remains explicit",
+    "base_model": "v2",
+    "inference_profile": "v2-vocal-soft-bias-v1",
+    "postprocess_profile": "global-postprocess-1ms-v2",
+    "postprocess_module": "mdac2.data_preparation.global_postprocess",
+    "storage_step_seconds": 0.001,
+    "export_module": "mdac2.data_preparation.six_export",
+    "delivery_directory": "E:/OneDrive - stu.sau.edu.cn/MuseDash/Custom_Albums",
+    "new_web_preview": false,
+    "model_weights_changed": false,
+    "human_acceptance": "pending"
+  },
+  "parent_identity_sha256": "d69698afb3225c8667c00f07e86bdbe7c0f0f28a823e0f13a1c91183f485a293",
+  "data_manifest_sha256": "34add12c1c47fc99afc04ae1fa9f06e968d5c2c50db41cb32a047f033668eb71",
+  "checkpoints": {
+    "onset": {
+      "path": "models/v2/weights/onset.pt",
+      "sha256": "bf4b4bd0b33fea90b9f9f4606127ea1d0cf0a4bbd2bea31d153953f81e5d8d50",
+      "bytes": 40048515,
+      "source_experiment": "supervised-dual-v1-20260928",
+      "source_best_epoch": 3,
+      "parameters": 3331074,
+      "architecture": "vocals-accompaniment-onset-v1"
+    },
+    "arrangement": {
+      "path": "models/v2/weights/arrangement.pt",
+      "sha256": "426c1e6a358050a8bcf716638b553a3c1dbe2b42761fbd0c48ccf364a31853d5",
+      "bytes": 132008058,
+      "source_experiment": "supervised-dual-v6-20260930",
+      "source_best_epoch": 18,
+      "parameters": 10993122,
+      "architecture": "mix-bigru512-causal-history256-v6"
+    }
+  },
+  "model_manifest_sha256": "9ae31c1894420492e4eae64cf88989d3f199523d00b78dbc7801c30642896562",
+  "prior_sha256": "6a27352cb2c0f9d6fc97f8f06d5742274d8c959a9fd5863fffad96568b875558",
+  "sources": {
+    "tools\\replay_global_postprocess.py": "f0dc7a5b06949ced72bb813c1d8bb23055bbe52b236a6298f69fc10bb6526a4a",
+    "tools\\generate_current_playtest.py": "d5af571a1e1c0f2db2704efbf00552d53d095a4a3dcd3a058eca9c509fb5545b",
+    "recipes\\generation-defaults.json": "7c21b9c5a240587ee3208ffb3fcac60e6a38f3c530da59c818cbf59f9af18619",
+    "tests\\unit\\test_global_postprocess.py": "fb037c9e6e9463e13d1d421bdfe7e0433c682c372312d8531bd232a1cd438e94",
+    "src\\mdac2\\data_preparation\\global_postprocess.py": "344dcb4a50cd9d5e3cdff05e7ad7693d08bc4853ca747bd179318e15c3b86d47",
+    "src\\mdac2\\data_preparation\\hold_refinement_rc1.py": "1c3042b9862edba81b0eb707884af0c8fe8205ec935a6fe54ce2188b40aa6e17",
+    "src\\mdac2\\data_preparation\\fixed_grid_r2.py": "bc64ef3c1953b31483e4df73d5b11b15841ee18ffbb2640acb8a295e675007c0",
+    "src\\mdac2\\data_preparation\\playtest_postprocess.py": "3125f59265388173138c025e88b4ded1e5cdbd033ef70584b9f72be7972f67e0",
+    "src\\mdac2\\data_preparation\\generated_constraints.py": "1373897f80c21fffc9eb3bb946bc79906450f1e2b4aaf225d94f1fdb98db36df",
+    "src\\mdac2\\data_preparation\\training_chart.py": "0b65546c25c5e6d3a4eaae25969caa5810c90e6bc2ea4d837711ffcdf8f09d62",
+    "src\\mdac2\\data_preparation\\six_export.py": "ec08a39a04cacbb14305b15a8d7767cedb087c4a7926dcbd1a9babc64769e9f2",
+    "src\\mdac2\\data_preparation\\joint_evaluation.py": "2aa431f06adf63af602065f295b8a5325a583f7df8662f9216177462b50d868d"
+  },
+  "neural_outputs_reused": true,
+  "weights_retrained": false,
+  "separation_repeated": false,
+  "locked_test_opened": false
+}
