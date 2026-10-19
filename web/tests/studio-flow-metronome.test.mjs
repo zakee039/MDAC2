@@ -15,7 +15,11 @@ test('thick beat has sustained body, peak headroom and fits fastest supported te
  }
 })
 test('next builds directly, resumes package progress, and blocks stale charts',()=>{
- const generated={confirmed:true,generation:'chart'}
+ const prediction={generation:'chart',chart_sha256:'digest',algorithm:'rule-v1'}
+ const generated={confirmed:true,generation:'chart',difficulty_prediction:prediction,difficulty:{...prediction,value:'8.3'}}
+ assert.equal(exportAction({...generated,difficulty:undefined},false),'blocked')
+ assert.equal(exportAction({...generated,generation:'new-chart'},false),'blocked')
+ assert.equal(exportAction({...generated,difficulty_prediction:{...prediction,chart_sha256:'changed'}},false),'blocked')
  assert.equal(projectStage(generated),3)
  assert.equal(exportAction(generated,false),'build')
  assert.equal(exportAction(generated,true),'blocked')
@@ -52,4 +56,20 @@ test('scheduled drum nodes stop on pause/dispose and restart without duplicate b
   audio.paused=true;clock.stop();await clock.start();assert.equal(nodes.length,2)
  }finally{clock.dispose()}
  assert.ok(ctx.closed);assert.ok(nodes.every(n=>n.stopped))
+})
+
+test('drum switches grids at tempo boundary and never schedules after out-point',async()=>{
+ const nodes=[]
+ const ctx={sampleRate:44100,currentTime:0,state:'running',baseLatency:0,
+  createBuffer:(_c,n)=>({getChannelData:()=>new Float32Array(n)}),
+  createBufferSource:()=>{const node={connect:()=>({connect(){}}),disconnect(){},start(t){this.time=t},stop(){this.onended?.()}};nodes.push(node);return node},
+  createGain:()=>({gain:{value:0},disconnect(){}}),resume:async()=>{},close:async()=>{}}
+ const audio={paused:false,ended:false,seeking:false,currentTime:9.95,playbackRate:1}
+ const clock=new DrumClock(ctx,audio,()=>({bpm:120,offset_ms:0,volume:1,segments:[{start_ms:10000,bpm:60,offset_ms:10000}],end_time:12}))
+ try{
+  await clock.start();assert.equal(nodes.length,1);assert.ok(Math.abs(nodes[0].time-.05)<1e-8)
+  clock.stop();audio.currentTime=10.45;await clock.start();assert.equal(nodes.length,1)
+  clock.stop();audio.currentTime=10.95;await clock.start();assert.equal(nodes.length,2)
+  clock.stop();audio.currentTime=11.95;await clock.start();assert.equal(nodes.length,2)
+ }finally{clock.dispose()}
 })

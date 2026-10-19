@@ -7,13 +7,14 @@ from starlette.concurrency import run_in_threadpool
 from starlette.responses import FileResponse
 from mdac2.api.security import identifier,json_body,error
 from mdac2.application.studio_metadata import SCENES,package_filename
+from mdac2.application.studio_scenes import AVAILABLE_SCENES
 from mdac2.infrastructure.project_repository import RevisionConflict
 
 
 def attach_studio(app,studio):
     app.state.studio=studio
     @app.get('/api/v1/studio')
-    def index():return dict(workflow_version=6,projects=studio.list(),models=studio.models(),scenes=SCENES,llm=studio.llm.public(),preferences=studio.preferences())
+    def index():return dict(workflow_version=11,projects=studio.list(),models=studio.models(),scenes=SCENES,scene_availability={key:key in AVAILABLE_SCENES for key in SCENES},llm=studio.llm.public(),preferences=studio.preferences())
     @app.post('/api/v1/studio/delivery-folder/select')
     async def select_delivery_folder():
         try:return await run_in_threadpool(studio.select_delivery_folder)
@@ -44,6 +45,14 @@ def attach_studio(app,studio):
     def project(pid:str):return studio.get(identifier(pid))
     @app.get('/api/v1/studio/projects/{pid}/audio')
     def audio(pid:str):return FileResponse(studio.audio_path(identifier(pid))[0],media_type='audio/wav')
+    @app.get('/api/v1/studio/projects/{pid}/waveform')
+    def waveform(pid:str,start:float=0,end:float|None=None):
+        from mdac2.application.studio_trim import waveform as peaks
+        return peaks(studio.audio_path(identifier(pid))[0],start,end)
+    @app.post('/api/v1/studio/projects/{pid}/trim/detect')
+    async def detect_trim(pid:str):
+        try:return await run_in_threadpool(studio.detect_trim,identifier(pid))
+        except ValueError as exc:return error(422,'TIMING_TRIM',str(exc))
     @app.post('/api/v1/studio/projects/{pid}/timing/detect')
     async def detect_timing(pid:str,request:Request):
         b=await json_body(request)
@@ -63,17 +72,25 @@ def attach_studio(app,studio):
     async def crop_cover(pid:str,request:Request):
         b=await json_body(request)
         return await run_in_threadpool(studio.save_cover,identifier(pid),b['version'],crop=b['crop'])
+    @app.post('/api/v1/studio/projects/{pid}/cover/options')
+    async def cover_options(pid:str,request:Request):
+        b=await json_body(request)
+        return await run_in_threadpool(studio.prepare_covers,identifier(pid),b['version'])
+    @app.post('/api/v1/studio/projects/{pid}/cover/select')
+    async def select_cover(pid:str,request:Request):
+        b=await json_body(request)
+        return await run_in_threadpool(studio.select_cover,identifier(pid),b['version'],b['cover_id'])
     @app.post('/api/v1/studio/projects/{pid}/cover/generate')
     async def generate_cover(pid:str,request:Request):
         b=await json_body(request)
         if b.get('mode') not in ('local','llm'):raise ValueError('请选择本地或LLM生成')
-        return await run_in_threadpool(studio.generate_cover,identifier(pid),b['version'],b['metadata'],b.get('force',False),b['mode'],b.get('user_prompt',''))
+        return await run_in_threadpool(studio.generate_cover,identifier(pid),b.get('version'),b['metadata'],b.get('force',False),b['mode'],b.get('user_prompt',''))
     @app.post('/api/v1/studio/projects/{pid}/draft')
     async def draft(pid:str,request:Request):
-        b=await json_body(request);return studio.save_draft(identifier(pid),b['version'],b['metadata'],b.get('cover_prompt'),b.get('timing'))
+        b=await json_body(request);return studio.save_draft(identifier(pid),b['version'],b['metadata'],b.get('cover_prompt'),b.get('timing'),b.get('trim'))
     @app.post('/api/v1/studio/projects/{pid}/confirm')
     async def confirm(pid:str,request:Request):
-        b=await json_body(request);return studio.confirm(identifier(pid),b['version'],b['metadata'],b.get('timing'))
+        b=await json_body(request);return studio.confirm(identifier(pid),b['version'],b['metadata'],b.get('timing'),b.get('trim'))
     @app.post('/api/v1/studio/projects/{pid}/suggest')
     async def suggest(pid:str,request:Request):
         b=await json_body(request)
@@ -83,11 +100,17 @@ def attach_studio(app,studio):
     @app.post('/api/v1/studio/projects/{pid}/run')
     async def run(pid:str,request:Request):
         b=await json_body(request);return studio.enqueue(identifier(pid),b['version'],b['operation'])
+    @app.post('/api/v1/studio/projects/{pid}/difficulty')
+    async def difficulty(pid:str,request:Request):
+        b=await json_body(request)
+        try:return studio.confirm_difficulty(identifier(pid),b['version'],b['value'])
+        except RevisionConflict:raise
+        except ValueError as exc:return error(422,'DIFFICULTY',str(exc))
     @app.post('/api/v1/studio/projects/{pid}/cancel')
     def cancel(pid:str):return studio.cancel(identifier(pid))
     @app.get('/api/v1/studio/projects/{pid}/package')
     def package(pid:str):
-        path,d=studio.package(identifier(pid));return FileResponse(path,filename=package_filename(d['metadata']),media_type='application/zip')
+        path,d=studio.package(identifier(pid));return FileResponse(path,filename=studio.package_name(path,d),media_type='application/zip')
     @app.post('/api/v1/studio/projects/{pid}/deliver')
     def deliver(pid:str):
         try:return studio.deliver(identifier(pid))

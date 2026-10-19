@@ -1,0 +1,127 @@
+{
+  "page": "https://musedash.fandom.com/wiki/Stages",
+  "retrieved": "2026-10-19",
+  "usage": "Muse Dash stage preview screenshots; artwork belongs to the game rightsholders. Fandom article licenses do not automatically license game screenshots.",
+  "images": [
+    {
+      "scene": "scene_01",
+      "file": "scene_01.webp",
+      "wiki_image": "Space Station.png",
+      "source": "https://static.wikia.nocookie.net/musedash_gamepedia_en/images/8/82/Space_Station.png/revision/latest/scale-to-width-down/770?cb=20190728233249",
+      "width": 770,
+      "height": 433,
+      "sha256": "d23413817c191950e8bf02077b21ca41fd3596169d5963aff8c4f39d71262250",
+      "bytes": 14868
+    },
+    {
+      "scene": "scene_02",
+      "file": "scene_02.webp",
+      "wiki_image": "Retrocity Stage.png",
+      "source": "https://static.wikia.nocookie.net/musedash_gamepedia_en/images/a/a2/Retrocity_Stage.png/revision/latest/scale-to-width-down/770?cb=20240629050045",
+      "width": 770,
+      "height": 433,
+      "sha256": "b98c4403e3b4d8bbcad0269ce52c1f344fc9f24ecbdb6eddfa609ffe7b070f25",
+      "bytes": 42858
+    },
+    {
+      "scene": "scene_03",
+      "file": "scene_03.webp",
+      "wiki_image": "Haunted Mansion Stage.png",
+      "source": "https://static.wikia.nocookie.net/musedash_gamepedia_en/images/0/09/Haunted_Mansion_Stage.png/revision/latest/scale-to-width-down/770?cb=20240818004258",
+      "width": 770,
+      "height": 433,
+      "sha256": "481a06aea305ee66580ef24b326a0635d3b4011e73269ee809c91a5ed90f0d7e",
+      "bytes": 15672
+    },
+    {
+      "scene": "scene_04",
+      "file": "scene_04.webp",
+      "wiki_image": "Rainy Night.png",
+      "source": "https://static.wikia.nocookie.net/musedash_gamepedia_en/images/d/d6/Rainy_Night.png/revision/latest/scale-to-width-down/770?cb=20190728233510",
+      "width": 770,
+      "height": 433,
+      "sha256": "0637f7bcc07fc886b860fdd52fc5c54c1b8a08f1afffa733a9c392a4ac851773",
+      "bytes": 10948
+    },
+    {
+      "scene": "scene_05",
+      "file": "scene_05.webp",
+      "wiki_image": "Candyland Stage.png",
+      "source": "https://static.wikia.nocookie.net/musedash_gamepedia_en/images/f/fc/Candyland_Stage.png/revision/latest/scale-to-width-down/770?cb=20240812205154",
+      "width": 770,
+      "height": 433,
+      "sha256": "6e589f849a38453fd168e52215e4b3c29670e78855febb25c72c2897de5c0cda",
+      "bytes": 19878
+    },
+    {
+      "scene": "scene_06",
+      "file": "scene_06.webp",
+      "wiki_image": "Oriental Stage.png",
+      "source": "https://static.wikia.nocookie.net/musedash_gamepedia_en/images/7/72/Oriental_Stage.png/revision/latest/scale-to-width-down/770?cb=20240818004530",
+      "width": 770,
+      "height": 433,
+      "sha256": "07ace0e8b91cb04523d7bddd4896248e19fa3569c43cb5f45d5ba7655324fa44",
+      "bytes": 17004
+    },
+    {
+      "scene": "scene_08",
+      "file": "scene_08.webp",
+      "wiki_image": "Gensokyo Stage.png",
+      "source": "https://static.wikia.nocookie.net/musedash_gamepedia_en/images/2/20/Gensokyo_Stage.png/revision/latest/scale-to-width-down/770?cb=20240813233202",
+      "width": 770,
+      "height": 433,
+      "sha256": "d2d20ca7e283199095a1af3a6a4efb833fdaca442f622f7d8bb930f8224ceb54",
+      "bytes": 22204
+    },
+    {
+      "scene": "scene_10",
+      "file": "scene_10.webp",
+      "wiki_image": "Museland Stage.png",
+      "source": "https://static.wikia.nocookie.net/musedash_gamepedia_en/images/7/79/Museland_Stage.png/revision/latest/scale-to-width-down/770?cb=20240818044154",
+      "width": 770,
+      "height": 433,
+      "sha256": "44e2ce826c2bdf012507de7aab240d4fb966b3e91aca14ab1671ab1b5e108037",
+      "bytes": 39888
+    },
+    {
+      "scene": "scene_10_rinlen",
+      "file": "scene_10_rinlen.webp",
+      "wiki_image": "Mirrorland (Museland Rin & Len).png",
+      "source": "https://static.wikia.nocookie.net/musedash_gamepedia_en/images/3/3d/Mirrorland_%28Museland_Rin_%26_Len%29.png/revision/latest/scale-to-width-down/770?cb=20240818044200",
+      "width": 770,
+      "height": 433,
+      "sha256": "82f1635ffabc27be505c80700b5f866747c5c396e797d4ad79256be478d2f627",
+      "bytes": 26042
+    },
+    {
+      "scene": "scene_12",
+      "file": "scene_12.webp",
+      "wiki_image": "JadeTempleStage.png",
+      "source": "https://static.wikia.nocookie.net/musedash_gamepedia_en/images/2/29/JadeTempleStage.png/revision/latest/scale-to-width-down/770?cb=20250319004711",
+      "width": 770,
+      "height": 433,
+      "sha256": "acbc041869c870892ebda32fad0472195622f2c13e748f34d7e15ec6eea78ba5",
+      "bytes": 14994
+    },
+    {
+      "scene": "scene_07",
+      "file": "scene_07.webp",
+      "wiki_image": "LetsGroove.png",
+      "source": "https://static.wikia.nocookie.net/musedash_gamepedia_en/images/e/e7/LetsGroove.png/revision/latest/scale-to-width-down/770?cb=20201005124234",
+      "width": 770,
+      "height": 433,
+      "sha256": "05b4994984401d870068e93da942f6d16608048de6e9d53c53e8fba20b32e9c0",
+      "bytes": 30266
+    },
+    {
+      "scene": "scene_09",
+      "file": "scene_09.webp",
+      "wiki_image": "Game Graveyard Stage.png",
+      "source": "https://static.wikia.nocookie.net/musedash_gamepedia_en/images/6/66/Game_Graveyard_Stage.png/revision/latest/scale-to-width-down/770?cb=20240818044018",
+      "width": 770,
+      "height": 433,
+      "sha256": "bd9e15684c50e7ec65d582a343be97f0ded79dc62747b5719169e487655562c0",
+      "bytes": 11678
+    }
+  ]
+}

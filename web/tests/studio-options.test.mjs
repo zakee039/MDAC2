@@ -1,6 +1,6 @@
 import test from 'node:test'
 import assert from 'node:assert/strict'
-import {applyPreset,presets,sceneNames} from '../src/studioOptions.ts'
+import {applyPreset,presets,sceneNames,scenePreviews} from '../src/studioOptions.ts'
 
 test('vendor switch clears previous credentials and model without changing saved name',()=>{
  const previous={name:'My config',id:'saved',base_url:'https://private.example/v1',protocol:'openai_compatible',model:'private-model',api_key:'secret',has_key:true,clear_key:false,preset:'custom'}
@@ -16,7 +16,8 @@ test('presets select actual protocols and scene labels distinguish Oriental from
  assert.equal(applyPreset(blank,'anthropic').protocol,'anthropic_compatible')
  assert.equal(applyPreset(blank,'openai_images').protocol,'openai_images')
  assert.equal(new Set(presets.map(p=>p.id)).size,presets.length)
- assert.equal(sceneNames.scene_01[0],'霓虹街道')
+ assert.equal(sceneNames.scene_01[0],'Space Station - [赛博, 硬核, 电子]')
  assert.notEqual(sceneNames.scene_06[0],sceneNames.scene_08[0])
- assert.equal(Object.keys(sceneNames).length,10)
+ assert.equal(Object.keys(sceneNames).length,12)
+ assert.deepEqual(Object.keys(scenePreviews).sort(),Object.keys(sceneNames).sort())
 })

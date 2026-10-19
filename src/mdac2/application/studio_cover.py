@@ -29,9 +29,27 @@ def normalize(root,data,crop=None):
 
 def embedded(root,source):
     try:
+        if Path(source).suffix.lower()=='.ncm':
+            # Only read the local artwork block, never metadata URLs or remote art.
+            with Path(source).open('rb') as f:
+                total=Path(source).stat().st_size
+                def take(n):
+                    if n<0 or n>total-f.tell():raise ValueError('Invalid NCM artwork')
+                    data=f.read(n)
+                    if len(data)!=n:raise ValueError('Invalid NCM artwork')
+                    return data
+                def number():return int.from_bytes(take(4),'little')
+                def skip(n):
+                    if n<0 or n>total-f.tell():raise ValueError('Invalid NCM artwork')
+                    f.seek(n,1)
+                if take(8)!=b'CTENFDAM':return None
+                take(2);skip(number());skip(number());take(5)
+                allocated=number();size=number()
+                if not 0<size<=min(allocated,8*1024*1024):return None
+                return normalize(root,take(size))
         info=json.loads(command([binary(root,'ffprobe.exe'),'-v','error','-show_streams','-of','json',source]))
         stream=next((s for s in info['streams'] if s.get('disposition',{}).get('attached_pic')==1),None)
         if stream is None:return None
         return command([binary(root,'ffmpeg.exe'),'-v','error','-nostdin','-i',source,'-map',f"0:{stream['index']}",
                         '-frames:v','1','-vf','scale=1600:1600:force_original_aspect_ratio=decrease','-f','image2pipe','-c:v','png','pipe:1'])
-    except (ValueError,KeyError):return None
+    except (OSError,ValueError,KeyError):return None

@@ -13,6 +13,59 @@ from mdac2.infrastructure.artifact_store import ArtifactStore
 TOKEN='s'*40
 
 
+def test_trim_tempo_map_persist_cache_identity_and_invalidate(context):
+    import io
+    import numpy as np
+    import soundfile as sf
+    from mdac2.application.studio_timing import settings
+    c,s=context;data=io.BytesIO();sf.write(data,np.zeros((44100*4,2)),44100,format='WAV')
+    p=c.post('/api/v1/studio/import',content=data.getvalue(),headers={'x-filename':'trim.wav'}).json()
+    pid=p['project_id'];base='/api/v1/studio/projects/'+pid
+    trim=dict(start_ms=500,end_ms=3500)
+    timing=dict(settings(),enabled=True,offset_ms=-380,segments=[dict(start_ms=1500,bpm=90,offset_ms=1500,tap_latency_ms=20)])
+    p=c.post(base+'/draft',json=dict(version=p['version'],metadata=p['metadata'],trim=trim,timing=timing)).json()
+    again=StudioWorkflow(s.root,s.runtime,s.repository).get(pid)
+    assert again['trim_draft']==trim and again['timing_draft']==timing
+    p=c.post(base+'/confirm',json=dict(version=p['version'],metadata=p['metadata'],trim=trim,timing=timing)).json()
+    assert p['trim']==trim and p['trim_draft'] is None
+    a=s.enqueue(pid,p['version'],'generate');folder=s.directory/pid/a['attempt_id']
+    request=json.loads((folder/'request.json').read_text())
+    assert request['trim']==trim and request['timing']==timing and '-trim-' in request['cache']
+    s.finish(a,'succeeded','fixture');p=s.get(pid)
+    changed=c.post(base+'/confirm',json=dict(version=p['version'],metadata=p['metadata'],trim=dict(start_ms=500,end_ms=3400),timing=timing)).json()
+    assert changed['generation'] is None and (folder/'request.json').exists()
+    response=c.get(base+'/waveform?start=1&end=1.5')
+    assert response.status_code==200 and response.json()['start']==1
+    assert c.post(base+'/confirm',json=dict(version=changed['version'],metadata=p['metadata'],trim=dict(start_ms=0,end_ms=5000))).status_code==422
+    assert c.post(base+'/draft',json=dict(version=1,metadata=p['metadata'],trim=trim)).status_code==409
+
+
+def test_trim_detector_is_bounded_and_does_not_commit_suggestion(context,monkeypatch):
+    import subprocess
+    c,s=context;p=imported(c);base='/api/v1/studio/projects/'+p['project_id']
+    def detect(command,**kwargs):
+        assert kwargs['timeout']==120
+        assert c.post(base+'/delete',json=dict(version=p['version'])).status_code==409
+        Path(command[-1]).write_text(json.dumps(dict(candidate_ms=None,needs_review=True)))
+    monkeypatch.setattr(subprocess,'run',detect)
+    assert c.post(base+'/trim/detect').json()['candidate_ms'] is None
+    assert s.get(p['project_id'])['version']==p['version']
+    def timeout(*a,**k):raise subprocess.TimeoutExpired('analysis',120)
+    monkeypatch.setattr(subprocess,'run',timeout)
+    assert c.post(base+'/trim/detect').status_code==422
+    assert s.timing_project is None and s.timing_lock.acquire(blocking=False)
+    s.timing_lock.release()
+
+
+def rated_fixture(s,p):
+    """Complete the immutable output files omitted by stubbed worker fixtures."""
+    from mdac2.data_preparation.audio_features import sha
+    folder=s.directory/p['project_id']/p['generation'];folder.mkdir(exist_ok=True)
+    (folder/'chart.json').write_text(json.dumps(dict(duration=3,events=[])))
+    (folder/'result.json').write_text(json.dumps(dict(status='succeeded',chart_sha256=sha(folder/'chart.json'))))
+    return s.confirm_difficulty(p['project_id'],p['version'],8.3)
+
+
 def test_legacy_four_part_generation_is_preserved_until_explicit_confirmation(context):
     c,s=context;p=imported(c);pid=p['project_id']
     old=dict(enabled=True,bpm=120.,offset_ms=0.,tap_latency_ms=0.)
@@ -24,6 +77,7 @@ def test_legacy_four_part_generation_is_preserved_until_explicit_confirmation(co
     # Existing generated charts may still be exported with their four-part identity.
     with s.repository._connection() as db:
         p.update(generation='previous-chart');s._write(db,p);db.commit()
+    p=rated_fixture(s,p)
     export=s.enqueue(pid,p['version'],'export')
     request=json.loads((s.directory/pid/export['attempt_id']/'request.json').read_text())
     assert request['timing']['subdivisions']==4
@@ -47,6 +101,7 @@ def test_timing_draft_persistence_request_and_invalidation(context):
     request=json.loads((s.directory/pid/a['attempt_id']/'request.json').read_text())
     assert request['timing']==timing
     s.finish(a,'succeeded','fixture');p=s.get(pid)
+    p=rated_fixture(s,p)
     pack=s.enqueue(pid,p['version'],'export')
     assert c.post(base+'/run',json=dict(version=p['version'],operation='export')).status_code==409
     s.finish(pack,'succeeded','fixture');p=s.get(pid)
@@ -139,7 +194,7 @@ def test_assigned_image_transport_prompt_proxy_and_no_paid_probe(tmp_path,monkey
     assert str(request.url)=='https://example.com/custom/v1/images/generations'
     assert request.headers['authorization']=='Bearer fixture-key'
     assert body['model']=='image-fixture' and body['n']==1
-    assert '雪の歌' in body['prompt'] and '作者' in body['prompt'] and 'FIXED STYLE' in body['prompt']
+    assert '雪の歌' in body['prompt'] and '作者' in body['prompt'] and 'DEFAULT STYLE' in body['prompt']
     assert 'COLOR PALETTE' not in body['prompt'] and 'response_format' not in body
     assert all(k['proxy']=='http://127.0.0.1:7890' and not k['trust_env'] and not k['follow_redirects'] for k in clients)
 
@@ -180,7 +235,8 @@ def test_generated_cover_circle_fallback_recrop_and_stale_result(context,monkeyp
         return valid,dict(model='fixture')
     monkeypatch.setattr(studio_imagegen,'generate',racing)
     response=c.post(base+'/cover/generate',json=dict(version=version,metadata=r['metadata'],force=True,mode='llm'))
-    assert response.status_code==409 and s.get(pid)['draft']['title']=='Changed while generating'
+    assert response.status_code==200 and s.get(pid)['draft']['title']=='Changed while generating'
+    assert response.json()['cover']['origin']=='imagegen'
 
 
 def test_generated_asset_url_does_not_forward_credentials(monkeypatch):
@@ -236,6 +292,38 @@ def test_auth_and_persistent_project(context):
     assert again.get(p['project_id'])['source_sha256']==p['source_sha256']
     assert Path(p['source']).read_bytes()==audio_bytes()
     assert again.list()[0]['project_id']==p['project_id']
+
+
+def test_rating_confirmation_export_binding_and_regeneration(context):
+    c,s=context;p=imported(c);pid=p['project_id'];base='/api/v1/studio/projects/'+pid
+    p=s.confirm(pid,p['version'],p['metadata'])
+    assert c.post(base+'/difficulty',json=dict(version=p['version'],value=8)).status_code==422
+    a=s.enqueue(pid,p['version'],'generate');s.finish(a,'succeeded','fixture');p=s.get(pid)
+    p=rated_fixture(s,p)
+    assert p['difficulty_prediction']['value']==1 and p['difficulty']['value']=='8.3'
+    reloaded=StudioWorkflow(s.root,s.runtime,s.repository).get(pid)
+    assert reloaded['difficulty']==p['difficulty']
+    assert c.post(base+'/difficulty',json=dict(version=p['version']-1,value=8)).status_code==409
+    for invalid in (None,True,'NaN',21,9.555):
+        assert c.post(base+'/difficulty',json=dict(version=p['version'],value=invalid)).status_code==422
+    pack=s.enqueue(pid,p['version'],'export')
+    request=json.loads((s.directory/pid/pack['attempt_id']/'request.json').read_text())
+    assert request['difficulty']['value']=='8.3' and request['difficulty']['generation']==a['attempt_id']
+    assert c.post(base+'/difficulty',json=dict(version=s.get(pid)['version'],value=9)).status_code==409
+    s.finish(pack,'succeeded','fixture');p=s.get(pid)
+    p=c.post(base+'/difficulty',json=dict(version=p['version'],value=9.2)).json()
+    assert p['export'] is None and p['generation']==a['attempt_id']
+    second=s.enqueue(pid,p['version'],'generate');s.finish(second,'succeeded','fixture');p=s.get(pid)
+    assert p['difficulty'] is None
+    # Build a new output, deliberately without confirming its level.
+    rated_fixture(s,p)
+    with s.repository._connection() as db:
+        d=s._read(db,pid);d['difficulty']=None;s._write(db,d);db.commit()
+    with pytest.raises(ValueError,match='确认'):s.enqueue(pid,d['version'],'export')
+    p=s.confirm_difficulty(pid,d['version'],8.8)
+    (s.directory/pid/second['attempt_id']/'chart.json').write_text('{}')
+    assert s.get(pid)['difficulty_prediction'] is None
+    with pytest.raises(ValueError,match='校验'):s.enqueue(pid,p['version'],'export')
 
 def test_confirm_enqueue_duplicate_cancel_retry(context):
     c,s=context;p=imported(c);pid=p['project_id'];base='/api/v1/studio/projects/'+pid
@@ -330,6 +418,10 @@ def test_real_http_metadata_transport(tmp_path,protocol,endpoint):
         path,body=seen[0];assert path==endpoint
         assert json.loads(body['messages'][-1]['content'])=={'song_name':'Snow Song Show'}
         assert body['model']=='fixture'
+        from mdac2.application.studio_scenes import AVAILABLE_SCENES
+        system=body['messages'][0]['content'] if protocol=='openai_compatible' else body['system']
+        assert json.dumps(AVAILABLE_SCENES,ensure_ascii=False) in system
+        assert '尝试检索歌曲背景' in system and '不得声称已检索或编造来源' in system
     finally:server.shutdown();server.server_close();thread.join()
 
 
@@ -344,6 +436,7 @@ def test_studio_backup_restore_paths_and_package(tmp_path):
     a=studio.enqueue(pid,p['version'],'generate')
     with pytest.raises(ValueError,match='等待'):backup_workspace(repo,store,tmp_path/'active-backup')
     studio.finish(a,'succeeded','fixture');p=studio.get(pid)
+    p=rated_fixture(studio,p)
     a=studio.enqueue(pid,p['version'],'export');folder=studio.directory/pid/a['attempt_id']
     (folder/'chart.mdm').write_bytes(b'package');(folder/'result.json').write_text(json.dumps({'package_sha256':sha(folder/'chart.mdm')}))
     studio.finish(a,'succeeded','fixture');studio.llm.path.write_text('do not backup credentials')
@@ -661,7 +754,11 @@ def test_delivery_folder_persists_cancel_and_safe_filename(context,tmp_path,monk
     from mdac2.data_preparation.audio_features import sha
     from urllib.parse import unquote
     c,s=context;p=imported(c);pid=p['project_id'];base='/api/v1/studio/projects/'+pid
-    source=tmp_path/'package.mdm';source.write_bytes(b'fake validated package')
+    import zipfile
+    def fake_package(path,marker):
+        with zipfile.ZipFile(path,'w') as z:
+            z.writestr('info.json',json.dumps({'difficulty2':'10'}));z.writestr('marker',marker)
+    source=tmp_path/'package.mdm';fake_package(source,'first')
     p['metadata'].update(title='歌曲',creator='mikee')
     monkeypatch.setattr(s,'package',lambda _: (source,p))
     assert c.post(base+'/deliver').json()=={'folder_required':True}
@@ -675,26 +772,30 @@ def test_delivery_folder_persists_cancel_and_safe_filename(context,tmp_path,monk
     again=StudioWorkflow(s.root,s.runtime,s.repository)
     assert again.preferences()['delivery_folder']==str(target.resolve())
     monkeypatch.setattr(again,'package',lambda _:(source,p))
-    result=again.deliver(pid);assert Path(result['path']).name=='[mikee]-歌曲.mdm'
+    result=again.deliver(pid);assert Path(result['path']).name=='[10.0]歌曲 - mikee.mdm'
     assert Path(result['path']).read_bytes()==source.read_bytes()
-    assert again.deliver(pid)['sha256']==sha(source)
+    assert again.deliver(pid)['path']==result['path'] and again.deliver(pid)['sha256']==sha(source)
     header=c.get(base+'/package').headers['content-disposition']
-    assert '[mikee]-歌曲.mdm' in unquote(header)
+    assert '[10.0]歌曲 - mikee.mdm' in unquote(header)
     existing=Path(result['path']);existing.write_bytes(b'keep old chart')
-    assert c.post(base+'/deliver').status_code==422 and existing.read_bytes()==b'keep old chart'
+    second=c.post(base+'/deliver').json()
+    assert Path(second['path']).name=='[10.0]歌曲 - mikee v2.mdm' and existing.read_bytes()==b'keep old chart'
+    fake_package(source,'third')
+    assert Path(again.deliver(pid)['path']).name=='[10.0]歌曲 - mikee v3.mdm'
+    assert Path(second['path']).read_bytes()!=source.read_bytes()
     assert not list(target.glob('.mdac-*'))
-    name=package_filename(dict(creator='../a:b',title='../../bad\\name'))
-    assert '/' not in name and chr(92) not in name and ':' not in name
+    name=package_filename(dict(creator='../a:b',title='../../bad\\name'),'9.5')
+    assert '/' not in name and chr(92) not in name and ':' not in name and name.startswith('[9.5]')
 
 
 def test_scene_vocalist_override_and_model_difficulty(context,monkeypatch):
     c,s=context;seen=[]
     monkeypatch.setattr(s.llm,'complete',lambda system,user:seen.append(system) or json.dumps(dict(title='Song',author='Composer',vocalist='初音ミク',franchise='other',scene='scene_01')))
     assert s.llm.suggest('Song')['scene']=='scene_10'
-    assert '霓虹街道' in seen[0] and 'scene_06' in seen[0]
+    assert 'Retrocity' in seen[0] and 'Jade Temple' in seen[0] and 'scene_06' in seen[0]
     data=c.get('/api/v1/studio').json()
-    assert data['workflow_version']==6 and data['scenes']['scene_01']=='霓虹街道'
-    assert {m['id']:m['difficulty'] for m in data['models']}=={'v2':'10.5','v3':'9.5'}
+    assert data['workflow_version']==11 and data['scenes']['scene_01']=='Space Station - [赛博, 硬核, 电子]'
+    assert {m['id']:m['difficulty'] for m in data['models']}=={'r2':'9.5','v2':'10.5','v3':'9.5'}
     p=imported(c);pid=p['project_id']
     p=s.confirm(pid,p['version'],p['metadata']|dict(model='v2'))
     a=s.enqueue(pid,p['version'],'generate')
@@ -715,3 +816,91 @@ def test_cover_extra_prompt_is_sent_and_hashed(monkeypatch):
     assert 'simple umbrella' in bodies[0]['prompt'] and 'web browsing tools' in bodies[0]['prompt']
     assert first['prompt_sha256']!=second['prompt_sha256']
     assert first['user_prompt']=='simple umbrella'
+    assert 'takes priority over the default art direction' in bodies[0]['prompt']
+    assert 'follow it in preference to the defaults' in bodies[0]['prompt']
+
+
+@pytest.mark.parametrize('model',['r2','v2','v3'])
+def test_all_studio_profiles_share_postprocess_and_persist_selection(context,model):
+    from mdac2.application.studio_models import PIPELINE,PROFILES
+    from mdac2.data_preparation.audio_features import sha
+    c,s=context;p=imported(c);pid=p['project_id']
+    options=c.get('/api/v1/studio').json()['models']
+    assert [m['label'] for m in options]==['人声优先R2','综合V2','综合V3']
+    assert all(m['available'] for m in options)
+    p=s.save_draft(pid,p['version'],p['metadata']|dict(model=model))
+    p=s.confirm(pid,p['version'],p['draft'],dict(enabled=True,bpm=120,offset_ms=0,tap_latency_ms=0,subdivisions=12))
+    a=s.enqueue(pid,p['version'],'generate')
+    request=json.loads((s.directory/pid/a['attempt_id']/'request.json').read_text())
+    assert request['metadata']['model']==model
+    assert request['timing']['subdivisions']==12
+    assert request['studio_pipeline']==PIPELINE
+    assert request['model_manifest_sha256']==sha(s.root/'models'/PROFILES[model]['base']/'manifest.json')
+    assert request['postprocess_manifest_sha256']==sha(s.root/'models/v3/manifest.json')
+
+
+def test_cover_catalog_keeps_generations_crops_and_selection_after_restart(context,monkeypatch):
+    from mdac2.application import studio_cover,studio_imagegen
+    c,s=context;p=imported(c);pid=p['project_id'];base='/api/v1/studio/projects/'+pid
+    root=Path(__file__).resolve().parents[2];binary=studio_cover.binary
+    monkeypatch.setattr(studio_cover,'binary',lambda _,name:binary(root,name))
+    monkeypatch.setattr(studio_cover,'embedded',lambda *_:studio_imagegen.fallback('Embedded','Artist'))
+    p=c.post(base+'/cover/options',json=dict(version=p['version'])).json()
+    assert p['embedded_checked'] and len(p['cover_history'])==1 and not p.get('cover')
+    embedded=p['cover_history'][0]['id']
+    monkeypatch.setattr(studio_imagegen,'generate',lambda *args:(studio_imagegen.fallback(args[2],args[3]),dict(model='fixture',shape='circle')))
+    p=s.generate_cover(pid,p['version'],dict(title='First',author=''),True)
+    first=p['cover']['id'];first_hash=p['cover']['sha256']
+    p=s.save_cover(pid,p['version'],crop=dict(x=.4,y=.6,zoom=1.2))
+    cropped_hash=p['cover']['sha256'];assert cropped_hash!=first_hash and p['cover']['number']==1
+    p=s.generate_cover(pid,p['version'],dict(title='Second',author=''),True)
+    second=p['cover']['id'];assert p['cover']['number']==2
+    p=s.generate_cover(pid,p['version'],dict(title='文字',author='作者'),mode='local')
+    text=p['cover']['id'];assert len(p['cover_history'])==4
+    again=StudioWorkflow(s.root,s.runtime,s.repository)
+    p=again.select_cover(pid,p['version'],first)
+    assert p['cover']['sha256']==cropped_hash and p['cover']['crop']['zoom']==1.2
+    for chosen in [embedded,second,text]:
+        p=again.select_cover(pid,p['version'],chosen);assert p['cover']['id']==chosen
+    with pytest.raises(ValueError):again.select_cover(pid,p['version'],'../not-a-cover')
+    with pytest.raises(Exception):again.select_cover(pid,p['version']-1,first)
+    assert all(Path(item['path']).is_file() for item in p['cover_history'])
+
+
+def test_cover_options_no_embedded_and_legacy_image_adoption(context,monkeypatch):
+    from mdac2.application import studio_cover,studio_imagegen
+    c,s=context;p=imported(c);pid=p['project_id']
+    root=Path(__file__).resolve().parents[2];binary=studio_cover.binary
+    monkeypatch.setattr(studio_cover,'binary',lambda _,name:binary(root,name))
+    p=s.save_cover(pid,p['version'],studio_imagegen.fallback('Old',''),origin='imagegen')
+    with s.repository._connection() as db:
+        p.pop('cover_history');p['cover'].pop('id');p['cover'].pop('number');s._write(db,p);db.commit()
+    calls=[];monkeypatch.setattr(studio_cover,'embedded',lambda *_:calls.append(True))
+    p=s.prepare_covers(pid,p['version']);assert p['cover']['number']==1 and p['cover']['id'].startswith('legacy-')
+    assert len(p['cover_history'])==1
+    p=s.prepare_covers(pid,p['version']);assert len(calls)==1
+    p=s.save_cover(pid,p['version'],crop=dict(x=.5,y=.5,zoom=1.1))
+    assert p['cover']['number']==1 and len(p['cover_history'])==1
+
+
+def test_image_failure_detail_is_safe_and_does_not_destroy_history(context,monkeypatch):
+    import httpx
+    from mdac2.application import studio_cover,studio_imagegen
+    from mdac2.application.studio_llm_errors import service_error
+    c,s=context;p=imported(c);pid=p['project_id']
+    root=Path(__file__).resolve().parents[2];binary=studio_cover.binary
+    monkeypatch.setattr(studio_cover,'binary',lambda _,name:binary(root,name))
+    profile=s.llm.save(dict(name='Image',model='image',protocol='openai_images',base_url='https://example.com/v1'))
+    s.llm.assign('cover',profile['id'])
+    p=s.save_cover(pid,p['version'],studio_imagegen.fallback('Good',''),origin='imagegen')
+    previous=p['cover']['id']
+    def fail(*args):
+        request=httpx.Request('POST','https://example.com/?secret=private')
+        response=httpx.Response(429,request=request,json={'error':{'message':'private-key'}})
+        try:response.raise_for_status()
+        except httpx.HTTPStatusError as exc:raise service_error(exc,'封面服务请求')
+    monkeypatch.setattr(studio_imagegen,'generate',fail)
+    p=s.generate_cover(pid,p['version'],p['metadata'],True)
+    assert '429' in p['cover']['fallback_message'] and 'private' not in p['cover']['fallback_message']
+    assert p['cover']['origin']=='local_text'
+    p=s.select_cover(pid,p['version'],previous);assert p['cover']['origin']=='imagegen'

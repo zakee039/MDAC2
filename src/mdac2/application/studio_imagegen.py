@@ -11,6 +11,7 @@ from urllib.parse import urlsplit
 import httpx
 from PIL import Image, ImageDraw, ImageFont
 from mdac2.application.studio_metadata import protect
+from mdac2.application.studio_llm_errors import service_error
 
 LIMIT=8*1024*1024
 
@@ -28,7 +29,7 @@ def request(profile,method,url,*,body=None,authenticated=True,limit=16*1024*1024
                     raw.extend(chunk)
                     if len(raw)>limit:raise ValueError('生图响应过大')
         return bytes(raw)
-    except (httpx.HTTPError,OSError):raise ValueError('生图服务连接失败，请检查模型、接口和代理') from None
+    except (httpx.HTTPError,OSError) as exc:raise service_error(exc,'封面服务请求') from None
 
 
 def probe(profile):
@@ -47,7 +48,7 @@ def generate(root,profile,title,artist,user_prompt=''):
     source=(Path(root)/'recipes/cover-art-h-v1.md').read_text(encoding='utf-8')
     template=source.split('## 生图提示词',1)[1].split('## 本地输出与降级',1)[0].strip()
     prompt=template.replace('<Insert JSON with song_title and song_artist here.>',json.dumps(dict(song_title=title,song_artist=artist),ensure_ascii=False))
-    if user_prompt:prompt+='\n\nADDITIONAL ART DIRECTION:\n'+user_prompt
+    if user_prompt:prompt+='\n\nUSER ART DIRECTION (takes priority over the default art direction above):\n'+user_prompt
     body=dict(model=profile['model'],prompt=prompt,n=1,size='1024x1024')
     try:
         result=json.loads(request(profile,'POST',profile['base_url']+'/images/generations',body=body))['data'][0]
@@ -80,9 +81,9 @@ def circle(data):
     return png(image)
 
 
-def fallback(title,artist):
-    image=Image.new('RGB',(512,512),'#eaf0e4');draw=ImageDraw.Draw(image)
-    draw.ellipse((18,18,494,494),outline='#8cab91',width=3)
+def text_layout(title,artist):
+    """Fit both strings into a large rectangle entirely inside the circular crop."""
+    draw=ImageDraw.Draw(Image.new('RGB',(512,512)))
     font_path=next((p for p in (Path('C:/Windows/Fonts/msyh.ttc'),Path('C:/Windows/Fonts/meiryo.ttc')) if p.exists()),None)
     def font(size):return ImageFont.truetype(str(font_path),size) if font_path else ImageFont.load_default(size=size)
     def lines(text,f,width):
@@ -91,12 +92,27 @@ def fallback(title,artist):
             if line and draw.textlength(line+char,font=f)>width:result.append(line);line=''
             line+=char
         return result+[line]
-    for size in range(30,7,-1):
-        tf,af=font(size),font(max(8,size-6));tl=lines(title,tf,340);al=lines(artist,af,340) if artist else []
-        height=len(tl)*(size+6)+len(al)*(max(8,size-6)+6)+20
-        if height<=300:break
+    import re
+    subtitle=re.fullmatch(r'(.+?)\s*([（(][^（）()]{1,16}[）)])',title)
+    for size in range(72,5,-1):
+        tf,af=font(size),font(max(6,round(size*.56)))
+        tl=([subtitle[1].strip(),subtitle[2]] if subtitle else lines(title,tf,350))
+        al=lines(artist,af,350) if artist else []
+        title_step=max(size+8,tf.getbbox('Ag游')[3]-tf.getbbox('Ag游')[1]+8)
+        artist_step=max(round(size*.56)+6,af.getbbox('Ag游')[3]-af.getbbox('Ag游')[1]+6)
+        height=len(tl)*title_step+len(al)*artist_step+(24 if al else 0)
+        if height<=280 and all(draw.textlength(line,f)<=350 for group,f in [(tl,tf),(al,af)] for line in group):break
     y=(512-height)/2
-    for group,f,step,color in ((tl,tf,size+6,'#294b3f'),(al,af,max(8,size-6)+6,'#52695e')):
-        for line in group:draw.text((256,y),line,font=f,anchor='mt',fill=color);y+=step
-        y+=20
+    layout=[]
+    for group,f,step,color in ((tl,tf,title_step,'#294b3f'),(al,af,artist_step,'#52695e')):
+        for line in group:
+            layout.append((line,f,y,color));y+=step
+        y+=24
+    return layout
+
+
+def fallback(title,artist):
+    image=Image.new('RGB',(512,512),'#eaf0e4');draw=ImageDraw.Draw(image)
+    draw.ellipse((18,18,494,494),outline='#8cab91',width=3)
+    for line,font,y,color in text_layout(title,artist):draw.text((256,y),line,font=font,anchor='mt',fill=color)
     return png(image)

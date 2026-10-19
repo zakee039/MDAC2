@@ -1,3 +1,4 @@
+type ClockSettings={bpm:number;offset_ms:number;volume:number;segments?:{start_ms:number;bpm:number;offset_ms:number}[];end_time?:number}
 /** Beat positions use media time, so seeking never produces a burst of missed beats. */
 export function beatWindow(time:number,bpm:number,offsetMs:number,last:number,horizon=.12){
  if(![time,bpm,offsetMs].every(Number.isFinite)||bpm<30||bpm>400)return []
@@ -34,8 +35,8 @@ export class DrumClock {
  private buffer:AudioBuffer
  private context:AudioContext
  private audio:HTMLAudioElement
- private config:()=>{bpm:number;offset_ms:number;volume:number}
- constructor(context:AudioContext,audio:HTMLAudioElement,config:()=>{bpm:number;offset_ms:number;volume:number}){
+ private config:()=>ClockSettings
+ constructor(context:AudioContext,audio:HTMLAudioElement,config:()=>ClockSettings){
   this.context=context;this.audio=audio;this.config=config
   const rate=context.sampleRate
   const samples=thickBeat(rate)
@@ -55,8 +56,15 @@ export class DrumClock {
   const c=this.config(),rate=this.audio.playbackRate||1
   const stamp=this.context.getOutputTimestamp?.()
   const lag=stamp?.contextTime?Math.max(0,Math.min(.2,this.context.currentTime-stamp.contextTime)):(this.context.baseLatency||0)
-  for(const beat of beatWindow(this.audio.currentTime,c.bpm,c.offset_ms,this.last,(.12+lag)*rate)){
-   this.last=beat.index
+  const sections=[{start_ms:-Infinity,bpm:c.bpm,offset_ms:c.offset_ms},...(c.segments||[])]
+  const beats=sections.flatMap((section,i)=>{
+   const end=Math.min(c.end_time??Infinity,(sections[i+1]?.start_ms??Infinity)/1000)
+   const now=Math.max(this.audio.currentTime,section.start_ms/1000)
+   if(now>this.audio.currentTime+(.12+lag)*rate)return []
+   return beatWindow(now,section.bpm,section.offset_ms,-Infinity,(.12+lag)*rate).filter(b=>b.time<end&&b.time>this.last+1e-8)
+  }).sort((a,b)=>a.time-b.time)
+  for(const beat of beats){
+   this.last=beat.time
    const delay=(beat.time-this.audio.currentTime)/rate-lag
    if(delay<-.025)continue
    const node=this.context.createBufferSource(),gain=this.context.createGain()

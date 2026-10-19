@@ -1,4 +1,5 @@
-export interface BeatSettings {enabled:boolean;bpm:number;offset_ms:number;tap_latency_ms:number;subdivisions:number}
+import type {TempoPoint} from './studioTimeline'
+export interface BeatSettings {segments?:TempoPoint[];enabled:boolean;bpm:number;offset_ms:number;tap_latency_ms:number;subdivisions:number}
 export const defaultBeatSettings=():BeatSettings=>({enabled:false,bpm:120,offset_ms:0,tap_latency_ms:0,subdivisions:12})
 export function upgradeBeatSettings(value?:Partial<BeatSettings>){
  const timing={...defaultBeatSettings(),...value,subdivisions:12}

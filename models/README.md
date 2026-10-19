@@ -1,6 +1,6 @@
 # 模型基线与制谱方案
 
-当前用户选定基线：**V3**（2026-10-18）；应用版本 **v0.2.0**。V2与R1完整保留。
+当前用户选定基线：**V3**（2026-10-18）；应用版本 **v0.3.0**。V2与R1完整保留。
 
 - V3冻结当前人声柔性增强＋全局1ms严格避让方案，两份网络权重与V2相同，没有重训。清单见[v3/manifest.json](v3/manifest.json)，本地权重位于`models/v3/weights/`。
 - `registry.json.current_model=v3`；`current_recipe=null`表示使用V3自带默认方案，无R覆盖。R1仍明确依赖V2，不能自动叠加到V3。新监督制谱通过`tools/generate_current_playtest.py`读取`recipes/generation-defaults.json`。
