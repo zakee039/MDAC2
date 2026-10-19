@@ -1,5 +1,9 @@
 # 模型基线与制谱方案
 
+V1/V2/V3 的冻结权重现已通过 Git LFS 发布，路径保持为 `models/<版本>/weights/`；V2/V3 的 `run-prior.json` 也在仓库中。三版共用相同的两个网络检查点，LFS 按内容去重。历史 manifest 内的“本地权重不发布”文字为冻结时的记录；当前发布方式以本说明为准，manifest 和权重内容未修改。
+
+安装 Git LFS 后克隆仓库；已有克隆可在工程目录执行 `git lfs install` 和 `git lfs pull` 获取完整权重。不要把 GitHub 源码 ZIP 中可能出现的 LFS 指针文件当作权重。Python 环境、FFmpeg 及分轨/测拍的第三方模型仍按工程安装说明准备。
+
 当前用户选定基线：**V3**（2026-10-18）；应用版本 **v0.3.0**。V2与R1完整保留。
 
 - V3冻结当前人声柔性增强＋全局1ms严格避让方案，两份网络权重与V2相同，没有重训。清单见[v3/manifest.json](v3/manifest.json)，本地权重位于`models/v3/weights/`。
