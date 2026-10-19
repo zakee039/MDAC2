@@ -137,7 +137,7 @@ def downgrade_heavy_near_lights(events, config):
         # Keep both source events. The heavy changes kind so it cannot cover
         # the existing light in the chart renderer.
         light_time=next(item[1] for item in candidates if item[2]==light_id)
-        changed_groups.update(group_members.get(heavy.group_id,()))
+        if heavy.group_id:changed_groups.add(heavy.group_id)
         changed.append(dict(event_id=heavy.event_id,from_kind='heavy',to_kind='light',
                             light_event_id=light_id,action='downgrade',
                             distance_ms=round(abs(heavy.start-light_time)*1000,3)))
@@ -219,6 +219,24 @@ def uniformize_beat_notes(events,duration,config):
                 conflicts.append(dict(event_id=event.event_id,kept=choices[event.event_id],discarded=target))
         group.update(action='redistribute',slots=slots,original_slots=original)
         group_reports.append(group)
+
+    # A double-heavy is one atomic object even though it participates in two
+    # per-lane groups. Keep both members on one chosen slot, or discard the
+    # complete object if either lane became over-dense.
+    atomic_groups=defaultdict(list)
+    for event in events:
+        if event.kind=='heavy' and event.group_id:
+            atomic_groups[event.group_id].append(event)
+    for group_id,members in atomic_groups.items():
+        ids={event.event_id for event in members}
+        if ids & dropped:
+            dropped.update(ids)
+            for event_id in ids:choices.pop(event_id,None)
+            group_reports.append(dict(group_id=group_id,count=len(members),action='drop_atomic_group'))
+            continue
+        targets=[choices.get(event.event_id,event.start) for event in members]
+        target=min(set(targets),key=lambda value:(sum(abs(value-event.start) for event in members),value))
+        for event in members:choices[event.event_id]=target
 
     out=[]
     moved=0

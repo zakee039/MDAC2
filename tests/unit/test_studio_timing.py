@@ -1,7 +1,7 @@
 import math
 import random
 import pytest
-from mdac2.application.studio_timing import settings,fit_beats,snap,rebase
+from mdac2.application.studio_timing import settings,fit_beats,snap,rebase,uniformize_beat_notes
 from mdac2.data_preparation.training_chart import TrainingEvent
 from mdac2.data_preparation.six_export import write_bms,read_bms,semantics
 from mdac2.data_preparation.global_postprocess import avoidance_violations
@@ -40,6 +40,23 @@ def test_nearby_heavy_in_different_bpm_beats_is_kept():
     cfg=dict(settings(),enabled=True,bpm=60,subdivisions=12)
     out,_=snap([event('light',.91),event('heavy',1.08,kind='heavy')],3,cfg)
     assert [e.kind for e in out]==['light','heavy']
+
+
+def test_double_heavy_stays_atomic_during_lane_uniformization():
+    cfg=dict(settings(),enabled=True,bpm=145,offset_ms=40)
+    es=[event('ground-heavy',.424,'ground','heavy',group='pair'),
+        event('air-heavy',.424,'air','heavy',group='pair'),event('air-light',.1,'air')]
+    out,_=uniformize_beat_notes(es,2,cfg)
+    pair=[e for e in out if e.group_id=='pair']
+    assert len(pair)==2 and pair[0].start==pair[1].start
+
+
+def test_downgraded_double_heavy_clears_group_on_remaining_member():
+    es=[event('light',1.0),event('ground-heavy',1.15,'ground','heavy',group='pair'),
+        event('air-heavy',1.15,'air','heavy',group='pair')]
+    out,_=snap(es,2,None)
+    assert all(e.group_id is None for e in out)
+    assert [e.kind for e in out]==['light','light','heavy']
 
 
 def test_twelve_subdivisions_preserve_halves_thirds_quarters_and_dense_notes():
