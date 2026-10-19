@@ -1,6 +1,6 @@
 export type ProjectStamp={project_id:string;version:number}
-export function acceptsLLMResult(current:ProjectStamp|null,started:ProjectStamp,view:number,startedView:number,disposed:boolean){
- return !disposed&&view===startedView&&current?.project_id===started.project_id&&current.version===started.version
+export function acceptsLLMResult(current:ProjectStamp|null,started:ProjectStamp,view:number,startedView:number,disposed:boolean,requireVersion=true){
+ return !disposed&&view===startedView&&current?.project_id===started.project_id&&(!requireVersion||current.version===started.version)
 }
 export function mergeSuggestedFields<T extends {title:string;author:string;scene:string}>(current:T,started:T,suggestion:T){
  const next={...current}

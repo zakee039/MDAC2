@@ -106,7 +106,9 @@ async function generateCover(mode:'local'|'llm'){const keepCrop=cropDirty.value;
 async function generateLLMCover(){
  const started={project_id:project.value.project_id,version:project.value.version},view=projectView
  const p=await api('/projects/'+started.project_id+'/cover/generate',{version:started.version,metadata:{title:form.value.title,author:form.value.author},force:true,mode:'llm',user_prompt:coverPrompt.value})
- if(!acceptsLLMResult(project.value,started,projectView,view,disposed))return 'stale'
+ // Cover generation is independent of the draft revision. The server saves
+ // the image against the latest project state after the image service returns.
+ if(!acceptsLLMResult(project.value,started,projectView,view,disposed,false))return 'stale'
  project.value=p;if(!cropDirty.value){crop.value=p.cover.crop;cropDirty.value=false}
  return p.cover.origin==='local_text'
 }

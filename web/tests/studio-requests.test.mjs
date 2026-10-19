@@ -8,6 +8,11 @@ test('late LLM responses cannot overwrite another project, newer revision or reo
  for(const [current,view,disposed] of [[null,1,false],[{project_id:'b',version:3},1,false],[{project_id:'a',version:4},1,false],[started,2,false],[started,1,true]])
   assert.equal(acceptsLLMResult(current,started,view,1,disposed),false)
 })
+test('cover responses remain valid after the same project changes version',()=>{
+ const started={project_id:'a',version:3}
+ assert.equal(acceptsLLMResult({project_id:'a',version:4},started,1,1,false,false),true)
+ assert.equal(acceptsLLMResult({project_id:'b',version:4},started,1,1,false,false),false)
+})
 test('LLM suggestions fill untouched fields and preserve manual edits',()=>{
  const before={title:'old',author:'',scene:'scene_01',creator:'mikee',model:'v3'}
  const edited={...before,title:'manual',creator:'new creator'}
