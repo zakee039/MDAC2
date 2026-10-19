@@ -12,6 +12,7 @@ import shutil
 import sys
 import time
 import zipfile
+from contextlib import nullcontext
 from types import SimpleNamespace
 
 ROOT=Path(__file__).resolve().parents[1]
@@ -55,6 +56,10 @@ def generate(request,out):
         assert sha(prior_path)==common['postprocessing']['prior_sha256']
     elif model_id=='r2':raise ValueError('R2需要当前工作台方案')
     source=Path(request['source']);assert sha(source)==request['source_sha256']
+    device_name=request.get('device') or os.environ.get('MDAC2_DEVICE','cuda')
+    if device_name not in ('cpu','cuda'):raise ValueError('Unsupported inference device')
+    device=torch.device(device_name)
+    if device.type=='cuda' and not torch.cuda.is_available():raise ValueError('CUDA不可用，请检查GPU环境后重试')
     cache=Path(request['cache']);cache.mkdir(parents=True,exist_ok=True)
     # Existing whole-song caches are read-only. Never use prepared training data.
     from mdac2.application.studio_trim import settings as trim_settings,prepare as prepare_trim
@@ -86,13 +91,26 @@ def generate(request,out):
         if not 0<record['duration']<=600:raise ValueError('支持10分钟以内的音乐')
         progress(out,'features','正在分离人声并提取特征；完成后可复用')
         if (cache/'features.staging').exists():(cache/'features.staging').rename(cache/f'features-interrupted-{time.time_ns()}')
-        prepare_features(SimpleNamespace(output=cache));cached=cache
+        if device.type=='cpu':
+            from mdac2.application.studio_cpu_features import CPUFeatureBuilder
+            row=dict(audio_path_absolute=str(cache/'mix.wav'),audio_sha256=record['wav_sha256'],
+                     pcm=dict(sha256=record['pcm_sha256'],seconds=record['duration']))
+            CPUFeatureBuilder(checkpoint=ROOT/'tools/private/separation/MelBandRoformer.ckpt',
+                              config_path=ROOT/'tools/private/separation/roformer-author-config.yaml',
+                              ffmpeg=ROOT/'tools/.deps/ffmpeg/extracted/ffmpeg-9.0.1-essentials_build/bin/ffmpeg.exe').process(row,cache/'features')
+        else:
+            prepare_features(SimpleNamespace(output=cache))
+        cached=cache
     record=read(cached/'audio.json')
     if not 0<record['duration']<=600:raise ValueError('支持10分钟以内的音乐')
-    validate_cache(cached/'features',dict(pcm=dict(sha256=record['pcm_sha256'])))
+    if device.type=='cpu':
+        from mdac2.application.studio_cpu_features import validate_cpu_cache
+        validate_cpu_cache(cached/'features',dict(pcm=dict(sha256=record['pcm_sha256'])))
+    else:
+        validate_cache(cached/'features',dict(pcm=dict(sha256=record['pcm_sha256'])))
     f=np.load(cached/'features/features.npy',mmap_mode='r',allow_pickle=False);duration=record['duration']
     seed_all(20260928);torch.set_num_threads(4)
-    if not torch.cuda.is_available():raise ValueError('CUDA不可用，请检查GPU环境后重试')
+    
     progress(out,'onsets','正在采音')
     onset_item=manifest['checkpoints']['onset']
     prediction_path=cache/('onsets-'+onset_item['sha256'][:16]+'.npz')
@@ -104,23 +122,25 @@ def generate(request,out):
     else:
         saved=torch.load(ROOT/onset_item['path'],map_location='cpu',weights_only=False)
         for name,digest in saved['identity']['code'].items():assert sha(ROOT/'src/mdac2/data_preparation'/name)==digest
-        onset=OnsetModel().cuda().eval();onset.load_state_dict(saved['model'])
+        onset=OnsetModel().to(device).eval();onset.load_state_dict(saved['model'])
         n=f.shape[-1];pred=dict(probability=np.zeros(n,np.float32),offsets=np.zeros(n,np.float32));coverage=np.zeros(n,np.int32)
         with torch.inference_mode():
             for start in window_starts(n):
                 window,_=slice_window(f[1:],start,time_axis=2)
-                with torch.autocast('cuda',dtype=torch.bfloat16):o=onset(torch.as_tensor(window[None],device='cuda',dtype=torch.float32))
+                with (torch.autocast('cuda',dtype=torch.bfloat16) if device.type=='cuda' else nullcontext()):
+                    o=onset(torch.as_tensor(window[None],device=device,dtype=torch.float32))
                 place_core(pred,coverage,start,dict(probability=o['logits'][0].float().sigmoid().cpu().numpy(),offsets=o['offsets'][0].float().cpu().numpy()))
         assert np.all(coverage==1)
         temp=prediction_path.with_name(prediction_path.stem+'.partial.npz');np.savez_compressed(temp,**pred);os.replace(temp,prediction_path)
         save(prediction_meta,dict(features_sha256=sha(cached/'features/features.npy'),sha256=sha(prediction_path)))
-        del onset,saved;torch.cuda.empty_cache()
+        del onset,saved
+        if device.type=='cuda':torch.cuda.empty_cache()
     times,boosted,routing=select_onsets(model_id,f,pred,duration)
     progress(out,'arrangement','正在生成轨道、物件与长条')
     saved=torch.load(ROOT/manifest['checkpoints']['arrangement']['path'],map_location='cpu',weights_only=False)
     for name,digest in saved['identity']['code'].items():assert sha(ROOT/'src/mdac2/data_preparation'/name)==digest
-    model=ContextArrangement().cuda().eval();model.load_state_dict(saved['model'])
-    scores=predict(model,f,times,duration);events,decoding=decode(scores['logits'],scores['log_lengths'],times,duration)
+    model=ContextArrangement().to(device).eval();model.load_state_dict(saved['model'])
+    scores=predict(model,f,times,duration,device=str(device),amp=device.type=='cuda');events,decoding=decode(scores['logits'],scores['log_lengths'],times,duration)
     save(out/'neural-chart.json',dict(duration=duration,events=[e.to_dict() for e in events],audit=decoding))
     progress(out,'postprocess','正在执行后处理和冲突检查')
     processor=postprocess if shared else (v3_process if model_id=='v3' else v2_process)

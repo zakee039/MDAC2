@@ -392,11 +392,12 @@ class StudioWorkflow:
                 raise ValueError('请重新确认BPM设置，新的制谱使用每拍12等分')
             attempt=str(uuid4());out=self.directory/pid/attempt;out.mkdir()
             request=dict(operation=operation,metadata=d['metadata'],source=d['source'],source_sha256=d['source_sha256'],
-                cache=str((self.directory/'cache'/d['source_sha256']).resolve()),
+                cache=str((self.directory/'cache'/(d['source_sha256'] + ('-cpu' if os.environ.get('MDAC2_DEVICE','cuda')=='cpu' else '') )).resolve()),
                 gpu_lock=str((self.root/'runtime/studio-gpu.lock').resolve()),
                 model_manifest_sha256=sha(self.root/'models'/PROFILES[d['metadata']['model']]['base']/'manifest.json'),
                 studio_pipeline=PIPELINE,
-                postprocess_manifest_sha256=sha(self.root/'models/v3/manifest.json'))
+                postprocess_manifest_sha256=sha(self.root/'models/v3/manifest.json'),
+                device=os.environ.get('MDAC2_DEVICE','cuda'))
             request['timing']=timing
             request['trim']=d.get('trim')
             if d.get('trim') and d.get('prepared_audio'):
@@ -508,7 +509,8 @@ class StudioWorkflow:
             if (out/'CANCEL').exists():self.finish(a,'cancelled','已取消');continue
             try:
                 with (out/'worker.log').open('w',encoding='utf-8') as log:
-                    process=subprocess.Popen([str(self.root/'tools/.deps/pretraining-py313/Scripts/python.exe'),
+                    worker_python=Path(os.environ.get('MDAC2_WORKER_PYTHON',self.root/'tools/.deps/pretraining-py313/Scripts/python.exe'))
+                    process=subprocess.Popen([str(worker_python),
                         str(self.root/'tools/studio_generate.py'),'--request',str((out/'request.json').resolve()),'--output',str(out.resolve())],
                         cwd=self.root,stdout=log,stderr=log,creationflags=getattr(subprocess,'CREATE_NO_WINDOW',0),
                         env={**os.environ,'PYTHONUTF8':'1'})

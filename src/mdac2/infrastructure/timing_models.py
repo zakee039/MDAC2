@@ -15,10 +15,17 @@ class TimingModels:
         if not self.manifest.is_file():raise ValueError('MODEL_CONFIGURATION_MISSING')
         config=json.loads(self.manifest.read_text(encoding='utf-8'))
         if config['schema_version']!=1:raise ValueError('Unknown model configuration')
-        if config['python']!='tools/.deps/beat-this-py313/Scripts/python.exe' or config['weights_root']!='tools/private/beat-this':
+        configured_python = config['python']
+        selected_python = self.root / configured_python
+        import os
+        portable_python = Path(os.environ.get('MDAC2_WORKER_PYTHON', self.root / 'runtime/python313/python.exe'))
+        if config['weights_root']!='tools/private/beat-this':
             raise ValueError('Unsupported local runtime layout')
+        if not selected_python.is_file() and not portable_python.is_file():
+            raise ValueError('MODEL_ENVIRONMENT_MISSING')
         record=next(r for r in config['models'] if r['model_id']==model_id)
-        python=self.root/config['python'];weights=self.root/config['weights_root']
+        python=portable_python if portable_python.is_file() else selected_python
+        weights=self.root/config['weights_root']
         if not python.is_file():raise ValueError('MODEL_ENVIRONMENT_MISSING')
         deps=tuple(sorted(config['dependencies'].items()))
         spec=ModelSpec(model_id,record['relative_path'],record['sha256'],record['source'],record['license_id'],
