@@ -25,6 +25,10 @@ $apiBase='C:\Users\mamin\AppData\Roaming\uv\python\cpython-3.12.14-windows-x86_6
 if(-not(Test-Path $apiBase)){throw "Missing Python 3.12 runtime: $apiBase"}
 $apiRoot=Join-Path $root 'runtime/python'; Robo $apiBase $apiRoot @('/XD','__pycache__','*site-packages*')
 Robo (Join-Path $source '.venv/Lib/site-packages') (Join-Path $apiRoot 'Lib/site-packages') @('/XD','__pycache__')
+foreach($optional in @('numba','llvmlite','librosa','torch','torchaudio','torchvision')) {
+  $candidate=Join-Path $apiRoot ("Lib/site-packages/"+$optional)
+  if(Test-Path $candidate){[IO.Directory]::Delete($candidate,$true)}
+}
 
 $workerBase='D:\anaconda'; if(-not(Test-Path $workerBase)){throw "Missing Python 3.13 runtime: $workerBase"}
 $workerRoot=Join-Path $root 'runtime/python313'; Robo $workerBase $workerRoot @('/XD','__pycache__','pkgs','conda-bld','Lib/site-packages')
