@@ -19,6 +19,29 @@ def test_disabled_grid_preserves_frozen_timing_and_validates_settings():
         with pytest.raises(ValueError):settings(bad)
 
 
+def test_nearby_same_lane_heavy_is_downgraded_without_bpm_and_retained():
+    es=[event('light',1.0),event('heavy',1.15,kind='heavy'),event('far',1.25,kind='heavy')]
+    out,report=snap(es,3,None)
+    assert [(e.event_id,e.kind) for e in out]==[('light','light'),('heavy','light'),('far','heavy')]
+    assert report['heavy_conflicts']['mode']=='nearby_200ms'
+    assert report['heavy_conflicts']['changed_count']==1
+    duplicate,_=snap([event('light',1.0),event('heavy',1.005,kind='heavy')],2,None)
+    assert [(e.event_id,e.kind) for e in duplicate]==[('light','light'),('heavy','light')]
+
+
+def test_same_beat_heavy_is_downgraded_even_when_more_than_200ms_apart():
+    cfg=dict(settings(),enabled=True,bpm=60,subdivisions=12)
+    out,report=snap([event('light',1.01),event('heavy',1.79,kind='heavy')],3,cfg)
+    assert [e.kind for e in out]==['light','light']
+    assert report['heavy_conflicts']['mode']=='same_beat'
+
+
+def test_nearby_heavy_in_different_bpm_beats_is_kept():
+    cfg=dict(settings(),enabled=True,bpm=60,subdivisions=12)
+    out,_=snap([event('light',.91),event('heavy',1.08,kind='heavy')],3,cfg)
+    assert [e.kind for e in out]==['light','heavy']
+
+
 def test_twelve_subdivisions_preserve_halves_thirds_quarters_and_dense_notes():
     cfg=dict(settings(),enabled=True)
     assert cfg['subdivisions']==12

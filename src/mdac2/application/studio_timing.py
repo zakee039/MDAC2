@@ -79,6 +79,84 @@ def _nearest_pair_slots(original,subdivisions):
                                             abs((pair[1]-pair[0])-6),pair))
 
 
+def downgrade_heavy_near_lights(events, config):
+    """Prefer a same-lane light over a nearby heavy attack.
+
+    This is a workbench adapter rule. It does not alter frozen model or
+    global-postprocess sources. With a beat map, proximity means the same beat;
+    without one it means 200ms in either direction. A converted member leaves
+    its double-heavy group so the remaining heavy cannot be treated as an
+    atomic pair after one side has changed type.
+    """
+    from collections import defaultdict
+
+    config=settings(config)
+    segments=[dict(start_ms=-float('inf'),**{k:config[k] for k in ('bpm','offset_ms')})]+config.get('segments',[])
+
+    def beat_key(t):
+        if not config['enabled']:
+            return None
+        chosen=0
+        for index,item in enumerate(segments[1:],1):
+            if t*1000>=item['start_ms']:chosen=index
+            else:break
+        segment=segments[chosen]
+        step=Fraction(60,12)/Fraction(str(segment['bpm']))
+        beat_step=step*12
+        origin=Fraction(str(segment['offset_ms']))/1000
+        index=math.floor(float((Fraction(str(t))-origin)/beat_step)+1e-8)
+        return chosen,index
+
+    lights=[e for e in events if e.kind=='light']
+    heavies=[e for e in events if e.kind=='heavy']
+    if not lights or not heavies:
+        return list(events),dict(enabled=True,mode='same_beat' if config['enabled'] else 'nearby_200ms',
+                                 window_ms=0 if config['enabled'] else 200,changed=[],dropped=[])
+    group_members=defaultdict(list)
+    for e in events:
+        if e.kind=='heavy' and e.group_id:
+            group_members[e.group_id].append(e.event_id)
+    changed=[];changed_groups=set()
+    for heavy in sorted(heavies,key=lambda e:(e.start,e.event_id)):
+        candidates=[]
+        for light in lights:
+            if not set(heavy.lanes)&set(light.lanes):
+                continue
+            if config['enabled']:
+                if beat_key(heavy.start)!=beat_key(light.start):
+                    continue
+                distance=abs(heavy.start-light.start)
+            else:
+                distance=abs(heavy.start-light.start)
+                if distance>.2+1e-9:
+                    continue
+            candidates.append((distance,light.start,light.event_id,light))
+        if not candidates:
+            continue
+        _,_,light_id,_=min(candidates, key=lambda item: item[:3])
+        # Keep both source events. The heavy changes kind so it cannot cover
+        # the existing light in the chart renderer.
+        light_time=next(item[1] for item in candidates if item[2]==light_id)
+        changed_groups.update(group_members.get(heavy.group_id,()))
+        changed.append(dict(event_id=heavy.event_id,from_kind='heavy',to_kind='light',
+                            light_event_id=light_id,action='downgrade',
+                            distance_ms=round(abs(heavy.start-light_time)*1000,3)))
+    out=[]
+    changed_ids={row['event_id'] for row in changed if row['action']=='downgrade'}
+    for event in events:
+        if event.event_id in changed_ids:
+            group_id=None
+            out.append(replace(event,kind='light',group_id=group_id))
+        elif event.group_id in changed_groups:
+            out.append(replace(event,group_id=None))
+        else:
+            out.append(event)
+    return out,dict(enabled=True,mode='same_beat' if config['enabled'] else 'nearby_200ms',
+                     window_ms=0 if config['enabled'] else 200,changed=changed,
+                     dropped=[],changed_count=len(changed_ids),
+                     dropped_count=0,scope='same physical lane')
+
+
 def uniformize_beat_notes(events,duration,config):
     """Spread supported same-track note groups across a 12-position beat.
 
@@ -158,7 +236,10 @@ def uniformize_beat_notes(events,duration,config):
 
 def snap(events,duration,config):
     config=settings(config)
-    if not config['enabled']:return list(events),dict(enabled=False)
+    if not config['enabled']:
+        out,heavy_rule=downgrade_heavy_near_lights(events,config)
+        return out,dict(enabled=False,heavy_conflicts=heavy_rule,
+                         stage_order=['nearby_heavy_to_light','validation'])
     from mdac2.data_preparation.generated_constraints import select_generated_candidates
     from mdac2.data_preparation.global_postprocess import prioritize_exclusive,move_hold_clicks
     from mdac2.data_preparation.playability_audit import audit_playability
@@ -191,6 +272,7 @@ def snap(events,duration,config):
             dropped.append(dict(event_id=e.event_id,reason='collapsed_or_outside_hold_grid'));continue
         moved.append(replace(e,start=a,end=b));shifts[e.event_id]=max(abs(a-e.start),abs(b-e.end))
     moved,uniformization=uniformize_beat_notes(moved,duration,config)
+    moved,heavy_rule=downgrade_heavy_near_lights(moved,config)
     moved,exclusive=prioritize_exclusive(moved,duration)
     # Explicit specials > holds > clicks. Within a kind prefer the least-shifted original.
     scored=[(e,(1 if e.exclusive else .8 if e.kind=='hold' else .5)-min(.1,shifts[e.event_id]/10)) for e in moved]
@@ -202,6 +284,6 @@ def snap(events,duration,config):
     return selected,dict(enabled=True,policy='studio-tempo-map-v1' if config.get('segments') else 'studio-twelfth-beat-v2' if config['subdivisions']==12 else 'studio-quarter-beat-v1',settings=config,positions_per_beat=config['subdivisions'],
         step_seconds=float(step),storage_ms=1,max_storage_rounding_ms=.5,before=len(events),after=len(selected),
         max_shift_ms=round(max(shifts.values(),default=0)*1000,3),dropped=dropped,uniformization=uniformization,exclusive=exclusive,
-        collisions=collisions,avoidance=avoidance,
-        stage_order=['millisecond_grid','same_track_beat_uniformization','exclusive_priority',
+        collisions=collisions,avoidance=avoidance,heavy_conflicts=heavy_rule,
+        stage_order=['millisecond_grid','same_track_beat_uniformization','nearby_heavy_to_light','exclusive_priority',
                      'candidate_collision_selection','hold_avoidance','validation'])
