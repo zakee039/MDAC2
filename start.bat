@@ -18,6 +18,7 @@ if exist "runtime\python\python.exe" (
   rem Source checkout: use the existing workstation environment.
   set "MDAC2_PYTHON=.venv\Scripts\python.exe"
   if exist "tools\.deps\pretraining-py313\Scripts\python.exe" set "MDAC2_WORKER=%CD%\tools\.deps\pretraining-py313\Scripts\python.exe"
+  if exist "tools\.deps\beat-this-py313\Scripts\python.exe" set "MDAC2_TIMING_PYTHON=%CD%\tools\.deps\beat-this-py313\Scripts\python.exe"
 ) else (
   echo MDAC2 Python runtime is missing.
   echo Use the portable package with its runtime folder, or prepare .venv for the source checkout.

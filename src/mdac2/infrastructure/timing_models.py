@@ -18,13 +18,18 @@ class TimingModels:
         configured_python = config['python']
         selected_python = self.root / configured_python
         import os
+        # Timing analysis has its own small CPU environment. The generation
+        # worker may use a different GPU environment, so never let the generic
+        # worker override the Beat-This interpreter when it is available.
+        timing_python = Path(os.environ['MDAC2_TIMING_PYTHON']) if os.environ.get('MDAC2_TIMING_PYTHON') else None
         portable_python = Path(os.environ.get('MDAC2_WORKER_PYTHON', self.root / 'runtime/python313/python.exe'))
         if config['weights_root']!='tools/private/beat-this':
             raise ValueError('Unsupported local runtime layout')
-        if not selected_python.is_file() and not portable_python.is_file():
+        candidates = [p for p in (timing_python, selected_python, portable_python) if p is not None]
+        if not any(p.is_file() for p in candidates):
             raise ValueError('MODEL_ENVIRONMENT_MISSING')
         record=next(r for r in config['models'] if r['model_id']==model_id)
-        python=portable_python if portable_python.is_file() else selected_python
+        python=next(p for p in candidates if p.is_file())
         weights=self.root/config['weights_root']
         if not python.is_file():raise ValueError('MODEL_ENVIRONMENT_MISSING')
         deps=tuple(sorted(config['dependencies'].items()))
