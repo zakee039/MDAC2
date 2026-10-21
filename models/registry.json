@@ -1,6 +1,7 @@
 {
   "schema_version": 2,
   "current_model": "v3",
+  "current_strategy": "v4",
   "models": {
     "v1": {
       "manifest": "models/v1/manifest.json",
@@ -17,6 +18,38 @@
       "manifest_sha256": "e5afe3ad1fe4d12b4558672b66393975d75f3a785b1b1e68f939f04e6d0e795c",
       "application_version": "0.1.0",
       "status": "user_selected_playtest_baseline"
+    },
+    "v4": {
+      "manifest": "models/v4/manifest.json",
+      "manifest_sha256": "92ea58a16c60acf39f00ae1f8679dfada11b6b04ba50a84aa19448b9e6dfee5d",
+      "application_version": "0.4.0",
+      "status": "user_selected_default_strategy"
+    }
+  },
+  "strategies": {
+    "r2": {
+      "manifest": "recipes/strategies/r2.json",
+      "weight_model": "v2",
+      "status": "user_selected_playtest_strategy",
+      "manifest_sha256": "661cb3ffc5c70ebfc23a4d9a3153f0a9d7ac1a61b797001230cb73cf90c8943a"
+    },
+    "v2": {
+      "manifest": "recipes/strategies/v2.json",
+      "weight_model": "v2",
+      "status": "user_selected_playtest_strategy",
+      "manifest_sha256": "706a23a2849d556d0a6758b144e6be0e6fcb14a8eea5c2232f42497aafdd181b"
+    },
+    "v3": {
+      "manifest": "recipes/strategies/v3.json",
+      "weight_model": "v3",
+      "status": "user_selected_playtest_strategy",
+      "manifest_sha256": "f2f77f16114f978a432b1a99a991ab104fe306ebfa5cfea4f0c121c031119f04"
+    },
+    "v4": {
+      "manifest": "recipes/strategies/v4.json",
+      "weight_model": "v3",
+      "status": "user_selected_default_strategy",
+      "manifest_sha256": "c9764e30266367615bbeb9e5f55476038004d02239dedfe09ef35d0907c56727"
     }
   },
   "current_recipe": null,
@@ -28,7 +61,7 @@
       "status": "user_selected_playtest_recipe"
     }
   },
-  "selection_note": "V3 includes its frozen default pipeline. No R override active. Historical R1 still explicitly depends on V2; V2 and its artifacts remain unchanged. Manual ChartIR is separate.",
+  "selection_note": "V4 is the default studio strategy, reusing V3 weights without retraining. Existing projects, frozen V2/V3 artifacts and the historical V3 batch entrypoint remain unchanged.",
   "active_generation_defaults": {
     "path": "recipes/generation-defaults.json",
     "entrypoint": "tools/generate_current_playtest.py",

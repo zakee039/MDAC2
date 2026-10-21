@@ -52,7 +52,10 @@ def build_app(root,token=None,port=8000,*,runtime_root=None):
         finally:studio.close()
     app.router.lifespan_context=lifespan
     @app.get('/')
-    def index():return FileResponse(root/'web/dist/index.html')
+    def index():
+        response=FileResponse(root/'web/dist/index.html')
+        response.headers['Cache-Control']='no-store'
+        return response
     app.mount('/assets',StaticFiles(directory=root/'web/dist/assets'),name='assets')
     return app
 

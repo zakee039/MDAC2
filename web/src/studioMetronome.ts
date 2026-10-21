@@ -31,6 +31,7 @@ export function thickBeat(sampleRate:number){
 export class DrumClock {
  private nodes=new Set<AudioBufferSourceNode>()
  private timer:ReturnType<typeof setInterval>|undefined
+ private generation=0
  private last=-Infinity
  private buffer:AudioBuffer
  private context:AudioContext
@@ -46,11 +47,12 @@ export class DrumClock {
  unlock(){return this.context.resume()}
  async start(){
   this.stop()
+  const generation=this.generation
   // Install the timer before awaiting resume, so pause can cancel a pending start.
   this.timer=setInterval(()=>this.tick(),25)
-  try{await this.context.resume();if(this.timer)this.tick()}catch{this.stop();throw new Error('audio unavailable')}
+  try{await this.context.resume();if(generation===this.generation&&this.timer)this.tick()}catch{if(generation!==this.generation)return;this.stop();throw new Error('audio unavailable')}
  }
- stop(){if(this.timer)clearInterval(this.timer);this.timer=undefined;this.last=-Infinity;for(const n of this.nodes){try{n.stop()}catch{}n.disconnect()}this.nodes.clear()}
+ stop(){this.generation++;if(this.timer)clearInterval(this.timer);this.timer=undefined;this.last=-Infinity;for(const n of this.nodes){try{n.stop()}catch{}n.disconnect()}this.nodes.clear()}
  private tick(){
   if(this.audio.paused||this.audio.ended||this.audio.seeking||this.context.state!=='running')return
   const c=this.config(),rate=this.audio.playbackRate||1

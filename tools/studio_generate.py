@@ -1,4 +1,4 @@
-"""Durable studio worker: source audio -> R2/V2/V3 profiles -> independent export.
+"""Durable studio worker: source audio -> selected strategy/weights -> export.
 
 Adapter only. Never modifies the release-bound neural/postprocessing modules.
 """
@@ -19,8 +19,9 @@ ROOT=Path(__file__).resolve().parents[1]
 sys.path.insert(0,str(ROOT/'src'))
 from generate_joint_playtest import audio,features as prepare_features,save,read,run_ffmpeg
 from mdac2.data_preparation.audio_features import sha,validate_cache
-from mdac2.application.studio_metadata import opening_talk,SCENES,clean,MODEL_LEVELS
-from mdac2.application.studio_models import PROFILES,PIPELINE,select_onsets,postprocess
+from mdac2.application.studio_metadata import opening_talk,SCENES,clean,STRATEGY_LEVELS
+from mdac2.application.studio_models import (strategy_for,
+    weight_manifest_for, strategy_manifest_for, pipeline_for, select_onsets, run_strategy)
 
 
 def progress(out,stage,message):save(out/'progress.json',dict(stage=stage,message=message,updated=time.time()))
@@ -34,27 +35,23 @@ def generate(request,out):
     from mdac2.data_preparation.training_tensors import window_starts,slice_window
     from mdac2.data_preparation.joint_decoding import place_core
     from mdac2.data_preparation.supervised_training import seed_all
-    from mdac2.data_preparation.global_postprocess import process as v3_process
-    from mdac2.data_preparation.playtest_postprocess import process as v2_process
     from mdac2.data_preparation.six_export import write_bms,read_bms,semantics
-    from mdac2.data_preparation.playability_audit import audit_playability
-    model_id=request['metadata']['model']
-    if model_id not in PROFILES:raise ValueError('不支持的模型')
+    strategy_id=request['strategy_id']
+    strategy=strategy_for(strategy_id)
+    weight_model=request['weight_model']
+    if strategy['weight_model']!=weight_model:raise ValueError('制谱策略与权重身份不匹配')
     progress(out,'identity','正在核验模型与音乐')
-    manifest_path=ROOT/'models'/PROFILES[model_id]['base']/'manifest.json';manifest=read(manifest_path)
-    assert sha(manifest_path)==request['model_manifest_sha256'],'模型版本已变化'
-    for name,item in manifest['postprocessing']['sources'].items():assert sha(ROOT/name)==item['sha256'],name
-    for c in manifest['checkpoints'].values():assert sha(ROOT/c['path'])==c['sha256']
-    prior_path=ROOT/manifest['postprocessing']['prior_path'];assert sha(prior_path)==manifest['postprocessing']['prior_sha256']
-    shared=request.get('studio_pipeline')
-    if shared is not None:
-        assert shared==PIPELINE,'未知工作台方案'
-        common_path=ROOT/'models/v3/manifest.json';common=read(common_path)
-        assert sha(common_path)==request['postprocess_manifest_sha256'],'全局后处理身份已变化'
-        for name,item in common['postprocessing']['sources'].items():assert sha(ROOT/name)==item['sha256'],name
-        prior_path=ROOT/common['postprocessing']['prior_path']
-        assert sha(prior_path)==common['postprocessing']['prior_sha256']
-    elif model_id=='r2':raise ValueError('R2需要当前工作台方案')
+    weight_manifest_path=ROOT/weight_manifest_for(weight_model)
+    weight_manifest=read(weight_manifest_path)
+    assert sha(weight_manifest_path)==request['weight_manifest_sha256'],'制谱权重版本已变化'
+    for c in weight_manifest['checkpoints'].values():assert sha(ROOT/c['path'])==c['sha256']
+    strategy_manifest_path=ROOT/strategy_manifest_for(strategy_id)
+    strategy_manifest=read(strategy_manifest_path)
+    assert sha(strategy_manifest_path)==request['strategy_manifest_sha256'],'制谱策略版本已变化'
+    for name,item in strategy_manifest.get('postprocessing',{}).get('sources',{}).items():assert sha(ROOT/name)==item['sha256'],name
+    prior_path=ROOT/strategy_manifest['postprocessing']['prior_path']
+    assert sha(prior_path)==strategy_manifest['postprocessing']['prior_sha256']
+    assert request['strategy_pipeline']==pipeline_for(strategy_id),'未知制谱策略流程'
     source=Path(request['source']);assert sha(source)==request['source_sha256']
     device_name=request.get('device') or os.environ.get('MDAC2_DEVICE','cuda')
     if device_name not in ('cpu','cuda'):raise ValueError('Unsupported inference device')
@@ -112,7 +109,7 @@ def generate(request,out):
     seed_all(20260928);torch.set_num_threads(4)
     
     progress(out,'onsets','正在采音')
-    onset_item=manifest['checkpoints']['onset']
+    onset_item=weight_manifest['checkpoints']['onset']
     prediction_path=cache/('onsets-'+onset_item['sha256'][:16]+'.npz')
     prediction_meta=prediction_path.with_suffix('.json')
     if prediction_path.exists() and prediction_meta.exists():
@@ -135,37 +132,36 @@ def generate(request,out):
         save(prediction_meta,dict(features_sha256=sha(cached/'features/features.npy'),sha256=sha(prediction_path)))
         del onset,saved
         if device.type=='cuda':torch.cuda.empty_cache()
-    times,boosted,routing=select_onsets(model_id,f,pred,duration)
+    times,boosted,routing=select_onsets(strategy_id,f,pred,duration)
     progress(out,'arrangement','正在生成轨道、物件与长条')
-    saved=torch.load(ROOT/manifest['checkpoints']['arrangement']['path'],map_location='cpu',weights_only=False)
+    saved=torch.load(ROOT/weight_manifest['checkpoints']['arrangement']['path'],map_location='cpu',weights_only=False)
     for name,digest in saved['identity']['code'].items():assert sha(ROOT/'src/mdac2/data_preparation'/name)==digest
     model=ContextArrangement().to(device).eval();model.load_state_dict(saved['model'])
     scores=predict(model,f,times,duration,device=str(device),amp=device.type=='cuda');events,decoding=decode(scores['logits'],scores['log_lengths'],times,duration)
     save(out/'neural-chart.json',dict(duration=duration,events=[e.to_dict() for e in events],audit=decoding))
     progress(out,'postprocess','正在执行后处理和冲突检查')
-    processor=postprocess if shared else (v3_process if model_id=='v3' else v2_process)
-    after,report=processor(events,f,boosted,duration,read(prior_path))
-    from mdac2.application.studio_timing import settings,snap
+    from mdac2.application.studio_timing import settings
     timing=settings(request.get('timing'))
-    after,grid_report=snap(after,duration,timing)
-    grid_report['adapter_sha256']=sha(ROOT/'src/mdac2/application/studio_timing.py')
+    after,report,grid_report,audit=run_strategy(strategy_id,events,f,boosted,duration,read(prior_path),timing)
+    adapter=('src/mdac2/application/studio_timing_v4.py' if strategy_id=='v4' else
+             f'src/mdac2/application/strategies/{strategy_id}/timing.py')
+    grid_report['adapter_sha256']=sha(ROOT/adapter)
     report['timing_adapter']=grid_report
     report['full_stage_order']=['model_selection_and_decoding',*report.get('stage_order',[]),
                                 *grid_report.get('stage_order',[])]
     save(out/'beat-grid.json',grid_report)
-    audit=audit_playability(after,duration)
     if not audit['engineering_playtest_gate_passed']:raise ValueError('谱面冲突检查未通过')
     bms=write_bms(after,duration);assert semantics(after)==semantics(read_bms(bms,duration))
     save(out/'chart.json',dict(duration=duration,events=[e.to_dict() for e in after],class_counts=dict(Counter(e.kind for e in after)),
-        model_id=model_id,metadata=request['metadata'],timing=timing,trim=trim))
+        strategy_id=strategy_id,weight_model=weight_model,metadata=request['metadata'],timing=timing,trim=trim))
     save(out/'postprocess.json',report);save(out/'audit.json',audit)
     (out/'chart.bms').write_text(bms,encoding='utf-8')
-    save(out/'result.json',dict(status='succeeded',events=len(after),duration=duration,model=model_id,
+    save(out/'result.json',dict(status='succeeded',events=len(after),duration=duration,strategy_id=strategy_id,
         cached_audio=str(cached),audio_record_sha256=sha(cached/'audio.json'),wav_sha256=record['wav_sha256'],
         features_sha256=sha(cached/'features/features.npy'),chart_sha256=sha(out/'chart.json'),
-        model_manifest_sha256=sha(manifest_path),routing=routing,worker_sha256=sha(Path(__file__)),
-        studio_pipeline=shared,base_model=PROFILES[model_id]['base'],
-        postprocess_manifest_sha256=request.get('postprocess_manifest_sha256'),
+        weight_model=weight_model,weight_manifest_sha256=sha(weight_manifest_path),
+        strategy_manifest_sha256=sha(strategy_manifest_path),routing=routing,worker_sha256=sha(Path(__file__)),
+        strategy_pipeline=request['strategy_pipeline'],
         selection_adapter_sha256=sha(ROOT/'src/mdac2/application/studio_models.py'),
         beat_grid_sha256=sha(out/'beat-grid.json'),timing_adapter_sha256=grid_report['adapter_sha256']))
 
@@ -184,7 +180,7 @@ def export(request,out):
     rating=request.get('difficulty')
     if rating:
         assert rating['chart_sha256']==result['chart_sha256'] and rating['generation']==generation.name,'定级与谱面不一致'
-    difficulty=level(rating['value'] if rating else MODEL_LEVELS[meta['model']])
+    difficulty=level(rating['value'] if rating else STRATEGY_LEVELS[meta['strategy_id']])
     from mdac2.application.studio_timing import settings
     assert settings(request.get('timing'))==settings(chart.get('timing')),'BPM设置已变化，请重新制谱'
     from mdac2.application.studio_trim import settings as trim_settings

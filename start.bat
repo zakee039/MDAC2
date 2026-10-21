@@ -27,6 +27,24 @@ if exist "runtime\python\python.exe" (
 )
 if defined MDAC2_WORKER set "MDAC2_WORKER_PYTHON=%MDAC2_WORKER%"
 set PYTHONPATH=%CD%\src
+if exist "web\node_modules\.bin\vite.cmd" (
+  where npm.cmd >nul 2>&1
+  if errorlevel 1 (
+    echo Node.js/npm is required to rebuild the bundled web interface.
+    pause
+    exit /b 1
+  )
+  echo Building the MDAC web interface...
+  pushd web
+  call npm.cmd run build
+  if errorlevel 1 (
+    popd
+    echo Web interface build failed; the local service was not started.
+    pause
+    exit /b 1
+  )
+  popd
+)
 echo.
 echo MDAC2: open the local URL below. No password required. Projects are saved in chart.
 echo Keep this window open while using the studio. Press Ctrl+C to stop.

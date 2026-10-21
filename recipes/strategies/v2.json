@@ -1,0 +1,43 @@
+{
+  "schema_version": 1,
+  "strategy_id": "v2",
+  "weight_model": "v2",
+  "parent_manifest": "models/v2/manifest.json",
+  "parent_manifest_sha256": "9ae31c1894420492e4eae64cf88989d3f199523d00b78dbc7801c30642896562",
+  "postprocessing": {
+    "prior_path": "models/v2/weights/run-prior.json",
+    "prior_sha256": "6a27352cb2c0f9d6fc97f8f06d5742274d8c959a9fd5863fffad96568b875558",
+    "sources": {
+      "src/mdac2/application/strategies/v2/__init__.py": {
+        "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+      },
+      "src/mdac2/application/strategies/v2/guard.py": {
+        "sha256": "263a3db52d51e34c07e22863bd932af5d7c64201f39eb281624ea833c8363e1f"
+      },
+      "src/mdac2/application/strategies/v2/pipeline.py": {
+        "sha256": "b408bcd8631848f896c2b3b3ee77e579902b35a20f0f8a1cf0df2c0b80259b45"
+      },
+      "src/mdac2/application/strategies/v2/postprocess.py": {
+        "sha256": "7858e8111d55a91fa8403eb6f1802c4249a456bd4d4d6e3c03f75aeee36cad0f"
+      },
+      "src/mdac2/application/strategies/v2/timing.py": {
+        "sha256": "aa50ad7eba6cda79a1e1999235b3d0f45397033b392862bfb32333b61f91cc64"
+      },
+      "src/mdac2/application/studio_models.py": {
+        "sha256": "d93de44864dd826cb1fe0cae02c56b6d6badc12fa4e8f64dccd6856132c5b458"
+      },
+      "src/mdac2/application/studio_timing.py": {
+        "sha256": "eeccf1c8d7b6e551bf2c050f94aa4aa11508e0b027f6b01e7f65218f52c75f5f"
+      },
+      "src/mdac2/data_preparation/playability_audit.py": {
+        "sha256": "023cd112c9ed125b7ee5cef7872227ca2666298f2fb8e3f6c43f33e790e956a8"
+      },
+      "src/mdac2/data_preparation/playtest_postprocess.py": {
+        "sha256": "3125f59265388173138c025e88b4ded1e5cdbd033ef70584b9f72be7972f67e0"
+      },
+      "tools/studio_generate.py": {
+        "sha256": "c4c0269eb13eaeb4c1b0d4bc65d4384af1896cd1f81b4e38fe2fc5b72adc3dce"
+      }
+    }
+  }
+}

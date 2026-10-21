@@ -1,6 +1,12 @@
 import test from 'node:test'
 import assert from 'node:assert/strict'
-import {applyPreset,presets,sceneNames,scenePreviews} from '../src/studioOptions.ts'
+import {applyPreset,presets,sceneNames,scenePreviews,chartStrategyLabel} from '../src/studioOptions.ts'
+
+test('missing project strategy cannot crash the page or project dialog',()=>{
+ for(const value of [undefined,null,'',42,{}])assert.equal(chartStrategyLabel(value,'zh'),'—')
+ assert.equal(chartStrategyLabel('v4','zh'),'综合V4')
+ assert.equal(chartStrategyLabel('candidate','en'),'CANDIDATE')
+})
 
 test('vendor switch clears previous credentials and model without changing saved name',()=>{
  const previous={name:'My config',id:'saved',base_url:'https://private.example/v1',protocol:'openai_compatible',model:'private-model',api_key:'secret',has_key:true,clear_key:false,preset:'custom'}

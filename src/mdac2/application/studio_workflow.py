@@ -8,10 +8,11 @@ import threading
 import time
 from uuid import uuid4
 
-from mdac2.application.studio_metadata import clean,SCENES,MetadataLLM,MODEL_LEVELS,package_filename,cover_prompt
+from mdac2.application.studio_metadata import clean,SCENES,MetadataLLM,STRATEGY_LEVELS,package_filename,cover_prompt
 from mdac2.data_preparation.audio_features import sha
 from mdac2.infrastructure.project_repository import RevisionConflict
-from mdac2.application.studio_models import PROFILES,PIPELINE
+from mdac2.application.studio_models import (STRATEGIES,
+    pipeline_for, strategy_manifest_for, weight_manifest_for)
 from mdac2.application.studio_scenes import AVAILABLE_SCENES
 
 
@@ -30,13 +31,23 @@ class StudioWorkflow:
     def _read(self,c,pid):
         row=c.execute('SELECT data FROM studio_projects WHERE project_id=?',(pid,)).fetchone()
         if row is None:raise KeyError(pid)
-        data=json.loads(row[0])
+        data=self._project_data(row[0])
+        return data
+    @staticmethod
+    def _project_data(raw):
+        data=json.loads(raw)
+        # Older releases called the strategy 'model'. Adapt the read view;
+        # loading a project must not rewrite its stored settings or selection.
+        for key in ('metadata','draft'):
+            fields=data.get(key)
+            if fields and 'strategy_id' not in fields and fields.get('model') in STRATEGIES:
+                fields['strategy_id']=fields.pop('model')
         return data
     def _write(self,c,data):
         c.execute('UPDATE studio_projects SET data=? WHERE project_id=?',(json.dumps(data),data['project_id']))
     def list(self):
         with self.repository._connection() as c:
-            data=[json.loads(r[0]) for r in c.execute('SELECT data FROM studio_projects')]
+            data=[self._project_data(r[0]) for r in c.execute('SELECT data FROM studio_projects')]
             return sorted(data,key=lambda d:d['updated'],reverse=True)
     def _project_folder(self,pid):
         from uuid import UUID
@@ -66,9 +77,9 @@ class StudioWorkflow:
         return dict(ok=True,project_id=pid)
     def save_draft(self,pid,version,metadata,user_prompt=None,timing=None,trim=None):
         from mdac2.application.studio_timing import settings
-        if set(metadata)!={'title','author','creator','scene','model'}:raise ValueError('歌曲信息字段不完整')
+        if set(metadata)!={'title','author','creator','scene','strategy_id'}:raise ValueError('歌曲信息字段不完整')
         draft={k:clean(v,empty=True) for k,v in metadata.items()}
-        if draft['scene'] not in SCENES or draft['model'] not in PROFILES:raise ValueError('无效场景或模型')
+        if draft['scene'] not in SCENES or draft['strategy_id'] not in STRATEGIES:raise ValueError('无效场景或制谱策略')
         if user_prompt is not None:user_prompt=cover_prompt(user_prompt)
         if timing is not None:timing=settings(timing)
         with self.repository._connection() as c:
@@ -146,7 +157,11 @@ class StudioWorkflow:
             self._write(c,d);c.commit()
         return self.get(pid)
     def models(self):
-        return [dict(id=m,label=p['label'],difficulty=MODEL_LEVELS[m],available=all((self.root/'models'/base/'manifest.json').is_file() for base in (p['base'],'v3')),default=m=='v3') for m,p in PROFILES.items()]
+        return [dict(strategy_id=sid,label=spec['label'],difficulty=STRATEGY_LEVELS[sid],
+                     weight_model=spec['weight_model'],
+                     available=(self.root/weight_manifest_for(spec['weight_model'])).is_file() and
+                               (self.root/strategy_manifest_for(sid)).is_file(),
+                     default=sid=='v4') for sid,spec in STRATEGIES.items()]
     def import_audio(self,path,filename):
         from mdac2.application.studio_media import EXTENSIONS,prepare
         filename=clean(filename);suffix=Path(filename).suffix.lower()
@@ -160,7 +175,7 @@ class StudioWorkflow:
             shutil.rmtree(self._project_folder(pid));raise
         title=Path(filename).stem
         d=dict(project_id=pid,version=1,filename=filename,source=str(source.resolve()),source_sha256=sha(source),
-            prepared_audio=prepared,metadata=dict(title=title,author='',creator='mikee',scene='scene_01',model='v3'),
+            prepared_audio=prepared,metadata=dict(title=title,author='',creator='mikee',scene='scene_01',strategy_id='v4'),
             confirmed=False,metadata_source='filename',suggestion=None,active_attempt=None,generation=None,export=None,
             created=time.time(),updated=time.time())
         with self.repository._connection() as c:
@@ -261,9 +276,11 @@ class StudioWorkflow:
             detail={k:d['cover'][k] for k in ('song','shape','profile_id','model','style','prompt_sha256','fallback_reason','fallback_message','user_prompt') if k in d['cover']}
         crop=crop or dict(x=.5,y=.5,zoom=1)
         rendered=normalize(self.root,original,crop)
-        if (detail or {}).get('shape')=='circle':
-            from mdac2.application.studio_imagegen import circle
-            rendered=circle(rendered)
+        # Every newly saved cover has a transparent circular render. Keep the
+        # original intact for future crops, including legacy uploaded artwork.
+        from mdac2.application.studio_imagegen import circle
+        detail=dict(detail or {},shape='circle')
+        rendered=circle(rendered)
         def publish(content):
             digest=hashlib.sha256(content).hexdigest();p=folder/(digest+'.png')
             if not p.exists():p.write_bytes(content)
@@ -341,9 +358,9 @@ class StudioWorkflow:
         finally:self.timing_project=None;self.timing_lock.release()
     def confirm(self,pid,version,metadata,timing=None,trim=None):
         from mdac2.application.studio_timing import settings
-        if set(metadata)!={'title','author','creator','scene','model'}:raise ValueError('歌曲信息字段不完整')
+        if set(metadata)!={'title','author','creator','scene','strategy_id'}:raise ValueError('歌曲信息字段不完整')
         meta={k:clean(v,empty=k=='author') for k,v in metadata.items()}
-        if meta['scene'] not in AVAILABLE_SCENES or meta['model'] not in PROFILES:raise ValueError('无效场景或模型，特殊玩法场景暂不支持')
+        if meta['scene'] not in AVAILABLE_SCENES or meta['strategy_id'] not in STRATEGIES:raise ValueError('无效场景或制谱策略，特殊玩法场景暂不支持')
         with self.repository._connection() as c:
             c.execute('BEGIN IMMEDIATE');d=self._read(c,pid)
             if d['version']!=version or d['active_attempt']:raise RevisionConflict('Project changed or busy')
@@ -394,9 +411,11 @@ class StudioWorkflow:
             request=dict(operation=operation,metadata=d['metadata'],source=d['source'],source_sha256=d['source_sha256'],
                 cache=str((self.directory/'cache'/(d['source_sha256'] + ('-cpu' if os.environ.get('MDAC2_DEVICE','cuda')=='cpu' else '') )).resolve()),
                 gpu_lock=str((self.root/'runtime/studio-gpu.lock').resolve()),
-                model_manifest_sha256=sha(self.root/'models'/PROFILES[d['metadata']['model']]['base']/'manifest.json'),
-                studio_pipeline=PIPELINE,
-                postprocess_manifest_sha256=sha(self.root/'models/v3/manifest.json'),
+                strategy_id=d['metadata']['strategy_id'],
+                weight_model=STRATEGIES[d['metadata']['strategy_id']]['weight_model'],
+                weight_manifest_sha256=sha(self.root/weight_manifest_for(STRATEGIES[d['metadata']['strategy_id']]['weight_model'])),
+                strategy_pipeline=pipeline_for(d['metadata']['strategy_id']),
+                strategy_manifest_sha256=sha(self.root/strategy_manifest_for(d['metadata']['strategy_id'])),
                 device=os.environ.get('MDAC2_DEVICE','cuda'))
             request['timing']=timing
             request['trim']=d.get('trim')

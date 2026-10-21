@@ -11,7 +11,7 @@ from urllib.parse import urlsplit
 import httpx
 from PIL import Image, ImageDraw, ImageFont
 from mdac2.application.studio_metadata import protect
-from mdac2.application.studio_llm_errors import service_error
+from mdac2.application.studio_llm_errors import service_error, ServiceError
 
 LIMIT=8*1024*1024
 
@@ -36,9 +36,12 @@ def probe(profile):
     # A settings test must not buy an image. Check the configured model listing only.
     try:
         data=json.loads(request(profile,'GET',profile['base_url']+'/models'))
-        if not any(p.get('id')==profile['model'] for p in data['data']):raise ValueError('接口可连接，但模型列表中没有该模型')
-    except (KeyError,TypeError,json.JSONDecodeError):raise ValueError('接口未返回有效模型列表；本次未生成图片') from None
-    return dict(ok=True,message='模型列表检查通过；未生成图片',image_probe=True)
+        if not isinstance(data.get('data'),list):raise TypeError()
+        if not any(isinstance(p,dict) and p.get('id')==profile['model'] for p in data['data']):
+            return dict(ok=True,model_listed=False,image_probe=True,
+                        message='接口可连接，但模型列表未列出此模型；生成能力尚未验证，本次未生成图片')
+    except (AttributeError,KeyError,TypeError,json.JSONDecodeError):raise ValueError('接口未返回有效模型列表；本次未生成图片') from None
+    return dict(ok=True,model_listed=True,message='模型列表检查通过；未生成图片',image_probe=True)
 
 
 def generate(root,profile,title,artist,user_prompt=''):
@@ -59,9 +62,25 @@ def generate(root,profile,title,artist,user_prompt=''):
             url=result['url'];parsed=urlsplit(url)
             if parsed.scheme!='https' or not parsed.hostname or parsed.username or parsed.password or parsed.port not in (None,443):
                 raise ValueError('生图图片地址无效')
+            # Synthetic DNS is valid only for hostnames through an explicit proxy.
+            try:literal=ipaddress.ip_address(parsed.hostname)
+            except ValueError:literal=None
+            if literal is not None and not literal.is_global:
+                raise ServiceError('封面下载失败：图片地址指向非公网地址')
+            if parsed.hostname.lower().rstrip('.') in ('localhost',) or parsed.hostname.lower().rstrip('.').endswith(('.localhost','.local')):
+                raise ServiceError('封面下载失败：图片地址指向本地网络')
             # Do not let a returned asset URL reach local services or forward API credentials.
             addresses=socket.getaddrinfo(parsed.hostname,443,type=socket.SOCK_STREAM)
-            if not addresses or any(not ipaddress.ip_address(a[4][0]).is_global for a in addresses):raise ValueError('生图图片地址不可用')
+            # Proxy DNS implementations commonly map public hosts to the
+            # RFC 2544 benchmarking range (198.18.0.0/15). The request still
+            # goes through the configured proxy; accept that synthetic result
+            # while continuing to reject loopback, private, link-local, and
+            # other non-public destinations.
+            synthetic_proxy=ipaddress.ip_network('198.18.0.0/15')
+            def safe_address(item):
+                address=ipaddress.ip_address(item[4][0])
+                return address.is_global or (literal is None and profile.get('proxy_url') and address in synthetic_proxy)
+            if not addresses or not all(safe_address(a) for a in addresses):raise ServiceError('生图图片地址不可用：请检查图片域名解析与代理设置')
             image=request(profile,'GET',url,authenticated=False,limit=LIMIT)
         if not image or len(image)>LIMIT:raise ValueError('封面图片最大8MB')
     except (KeyError,IndexError,TypeError,OSError,json.JSONDecodeError):raise ValueError('生图接口未返回有效图片') from None

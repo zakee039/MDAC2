@@ -1,9 +1,21 @@
-param([string]$Output = (Join-Path (Split-Path -Parent $PSScriptRoot) 'MDAC2-v0.3.0-portable-cpu.zip'))
+param([string]$Output = (Join-Path (Split-Path -Parent $PSScriptRoot) 'MDAC2-v0.4.0-portable-cpu.zip'), [switch]$KeepStage)
 $ErrorActionPreference = 'Stop'
 $source = (Resolve-Path (Join-Path $PSScriptRoot '..')).Path
+$Output = [IO.Path]::GetFullPath($Output)
+if(Test-Path -LiteralPath $Output){throw "Refusing to overwrite existing package: $Output"}
 $stage = Join-Path ([IO.Path]::GetTempPath()) ('mdac2-portable-' + [guid]::NewGuid().ToString('N'))
-$root = Join-Path $stage 'MDAC2-v0.3.0-portable-cpu'
+$root = Join-Path $stage 'MDAC2-v0.4.0-portable-cpu'
 New-Item -ItemType Directory -Force $root | Out-Null
+
+function AssertStagePath([string]$path) {
+  $resolved = [IO.Path]::GetFullPath($path)
+  $base = [IO.Path]::GetFullPath($stage)
+  if($resolved -ne $base -and -not $resolved.StartsWith($base + [IO.Path]::DirectorySeparatorChar,[StringComparison]::OrdinalIgnoreCase)){throw "Path outside build stage: $resolved"}
+  if(Test-Path -LiteralPath $resolved){
+    $items = @((Get-Item -LiteralPath $resolved -Force)) + @(Get-ChildItem -LiteralPath $resolved -Recurse -Force)
+    if($items | Where-Object { $_.Attributes -band [IO.FileAttributes]::ReparsePoint }){throw "Reparse point in build stage: $resolved"}
+  }
+}
 
 function CopyPath([string]$relative) {
   $from=Join-Path $source $relative; $to=Join-Path $root $relative
@@ -17,9 +29,10 @@ function Robo([string]$from,[string]$to,[string[]]$extra=@()) {
   if($LASTEXITCODE -gt 7){throw "robocopy failed ($LASTEXITCODE): $from"}
 }
 
-# The studio only exposes V2/V3 (R2 reuses V2). Keep the historical V1 files in
+# The studio exposes R2/V2/V3/V4; V4 reuses V3 weights. Keep V1 files in
 # the repository, but do not make every portable user carry them.
-CopyPath 'src'; CopyPath 'models/v2'; CopyPath 'models/v3'; CopyPath 'recipes'; CopyPath 'web/dist'; CopyPath 'start.bat'; CopyPath 'README.md'; CopyPath 'CHANGELOG.md'
+Robo (Join-Path $source 'src') (Join-Path $root 'src') @('/XD','__pycache__','*.egg-info')
+CopyPath 'models/v2'; CopyPath 'models/v3'; CopyPath 'models/v4'; CopyPath 'models/registry.json'; CopyPath 'recipes'; CopyPath 'web/dist'; CopyPath 'start.bat'; CopyPath 'README.md'; CopyPath 'CHANGELOG.md'
 CopyPath 'tools/studio_generate.py'; CopyPath 'tools/generate_joint_playtest.py'; CopyPath 'tools/studio_detect_timing.py'; CopyPath 'tools/studio_detect_trim.py'
 CopyPath 'tools/private/beat-this'; CopyPath 'tools/experiments/beat_this/models.json'
 
@@ -46,9 +59,16 @@ $apiBase='C:\Users\mamin\AppData\Roaming\uv\python\cpython-3.12.14-windows-x86_6
 if(-not(Test-Path $apiBase)){throw "Missing Python 3.12 runtime: $apiBase"}
 $apiRoot=Join-Path $root 'runtime/python'; Robo $apiBase $apiRoot @('/XD','__pycache__','*site-packages*')
 Robo (Join-Path $source '.venv/Lib/site-packages') (Join-Path $apiRoot 'Lib/site-packages') @('/XD','__pycache__')
+# Replace checkout-bound editable imports with a relocatable source reference.
+Get-ChildItem -LiteralPath (Join-Path $apiRoot 'Lib/site-packages') -File -Filter '__editable__*mdac2*' | Remove-Item -Force
+'../../../../src' | Set-Content (Join-Path $apiRoot 'Lib/site-packages/mdac2-portable.pth') -Encoding ASCII
+Get-ChildItem -LiteralPath (Join-Path $apiRoot 'Lib/site-packages') -Directory -Filter 'mdac2-*.dist-info' | ForEach-Object {
+  $direct = Join-Path $_.FullName 'direct_url.json'
+  if(Test-Path -LiteralPath $direct){Remove-Item -LiteralPath $direct -Force}
+}
 foreach($optional in @('numba','llvmlite','librosa','torch','torchaudio','torchvision')) {
   $candidate=Join-Path $apiRoot ("Lib/site-packages/"+$optional)
-  if(Test-Path $candidate){[IO.Directory]::Delete($candidate,$true)}
+  if(Test-Path $candidate){AssertStagePath $candidate; Remove-Item -LiteralPath $candidate -Recurse -Force}
 }
 
 $workerBase='D:\anaconda'; if(-not(Test-Path $workerBase)){throw "Missing Python 3.13 runtime: $workerBase"}
@@ -59,23 +79,24 @@ Robo (Join-Path $source 'tools/.deps/beat-this-py313/Lib/site-packages') (Join-P
 # The copied environments are execution-only. Static import libraries, debug
 # symbols, bytecode caches and conda's package manager are not needed to run.
 foreach($runtimeRoot in @($apiRoot,$workerRoot)) {
+  AssertStagePath $runtimeRoot
   Get-ChildItem -LiteralPath $runtimeRoot -Recurse -Force -File -ErrorAction SilentlyContinue |
     Where-Object { $_.Extension -in @('.pdb','.lib','.pyc','.pyo') } |
     Remove-Item -Force -ErrorAction SilentlyContinue
 }
 foreach($relative in @('Library/lib','Library/include','include','libs','Scripts','condabin','conda-meta','share')) {
   $candidate=Join-Path $workerRoot $relative
-  if(Test-Path -LiteralPath $candidate){[IO.Directory]::Delete($candidate,$true)}
+  if(Test-Path -LiteralPath $candidate){AssertStagePath $candidate; Remove-Item -LiteralPath $candidate -Recurse -Force}
 }
 foreach($file in @('_conda.exe','Uninstall-Miniconda3.exe','.condarc','EULA.txt','LICENSE_PYTHON.txt','install.log','pre_uninstall.bat')) {
   $candidate=Join-Path $workerRoot $file
   if(Test-Path -LiteralPath $candidate){[IO.File]::Delete($candidate)}
 }
 
-@{application_version='0.3.0';runtime='cpu';api_python='3.12';worker_python='3.13';entrypoint='start.bat';models=@('V2','V3','R2 adapter');excludes=@('CUDA runtime','GPU environment','V1 historical weights','development audio stores','FFmpeg docs/archive','debug symbols/static import libraries','private project data','chart runtime database')} |
+@{application_version='0.4.0';runtime='cpu';api_python='3.12';worker_python='3.13';entrypoint='start.bat';default_strategy='v4';strategies=@('R2','V2','V3','V4');weight_models=@('V2','V3');excludes=@('CUDA runtime','GPU environment','V1 historical weights','development audio stores','FFmpeg docs/archive','debug symbols/static import libraries','private project data','chart runtime database')} |
   ConvertTo-Json -Depth 5 | Set-Content (Join-Path $root 'PORTABLE-MANIFEST.json') -Encoding UTF8
-if(Test-Path -LiteralPath $Output){[IO.File]::Delete((Resolve-Path $Output).Path)}
 & 7z.exe a -tzip -mx=1 -mmt=on -y $Output $root | Out-Null
 if($LASTEXITCODE -ne 0){throw "7-Zip failed ($LASTEXITCODE)"}
 Write-Output "Created $Output"
-[IO.Directory]::Delete($stage,$true)
+if($KeepStage){Write-Output "Stage retained for verification: $root"}
+else {AssertStagePath $stage; Remove-Item -LiteralPath $stage -Recurse -Force}

@@ -32,10 +32,16 @@ export const sceneNames:Record<string,[string,string,string]>={
  scene_09:["Game Graveyard - [DJMAX, 音游, 暗黑, 墓园]", "Game Graveyard - [DJMAX, Rhythm game, Dark, Graveyard]", "Game Graveyard - [DJMAX, 音楽ゲーム, ダーク, 墓地]"],
 }
 
-export const chartModelNames:Record<string,[string,string,string]>={
+export const chartStrategyNames:Record<string,[string,string,string]>={
  r2:['人声优先R2','Vocal priority R2','ボーカル優先R2'],
  v2:['综合V2','Balanced V2','総合V2'],
  v3:['综合V3','Balanced V3','総合V3'],
+ v4:['综合V4','Balanced V4','総合V4'],
+}
+
+export function chartStrategyLabel(key:unknown,language:string){
+ if(typeof key!=='string'||!key)return '—'
+ return chartStrategyNames[key]?.[language==='zh'?0:language==='en'?1:2]||key.toUpperCase()
 }
 
 // Local screenshots from the Stages wiki; provenance is in assets/stages/sources.json.

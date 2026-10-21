@@ -1,6 +1,13 @@
 import type {BeatSettings} from './studioBpm'
 export interface Trim {start_ms:number;end_ms:number}
 export interface TempoPoint {start_ms:number;bpm:number;offset_ms:number;tap_latency_ms:number}
+// Stored markers are rounded to 1 ms; decoded media duration is more precise.
+// Include that rounding margin at the viewport edges and draw on the boundary.
+export function markerPosition(time:number,start:number,end:number):number|null{
+ const tolerance=.000500001
+ if(![time,start,end].every(Number.isFinite)||time<start-tolerance||time>end+tolerance)return null
+ return Math.max(0,Math.min(100,100*(time-start)/Math.max(.001,end-start)))
+}
 export function rebaseTiming(timing:BeatSettings,oldStart:number,newStart:number):BeatSettings{
  const delta=newStart-oldStart
  return {...timing,offset_ms:timing.offset_ms-delta,...(timing.segments?{segments:timing.segments.map(s=>({...s,start_ms:s.start_ms-delta,offset_ms:s.offset_ms-delta}))}:{})}

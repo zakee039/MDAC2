@@ -20,3 +20,7 @@ tools/private/
 
 # Local model checkpoints; version their identity through manifests.
 models/**/weights/
+
+# Portable releases are delivered separately from source control.
+/MDAC2-v*-portable-cpu.zip
+/MDAC2-v*-portable-cpu.zip.sha256

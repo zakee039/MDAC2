@@ -1,0 +1,70 @@
+{
+  "schema_version": 1,
+  "strategy_id": "r2",
+  "weight_model": "v2",
+  "parent_manifest": "models/v3/manifest.json",
+  "parent_manifest_sha256": "e5afe3ad1fe4d12b4558672b66393975d75f3a785b1b1e68f939f04e6d0e795c",
+  "postprocessing": {
+    "prior_path": "models/v3/weights/run-prior.json",
+    "prior_sha256": "6a27352cb2c0f9d6fc97f8f06d5742274d8c959a9fd5863fffad96568b875558",
+    "sources": {
+      "src/mdac2/application/strategies/r2/__init__.py": {
+        "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+      },
+      "src/mdac2/application/strategies/r2/pipeline.py": {
+        "sha256": "b408bcd8631848f896c2b3b3ee77e579902b35a20f0f8a1cf0df2c0b80259b45"
+      },
+      "src/mdac2/application/strategies/r2/postprocess.py": {
+        "sha256": "f6c7b28a2fa4e7ae98ae1e7b91e778976e29311ed160a7f108aad7c50ba86313"
+      },
+      "src/mdac2/application/strategies/r2/timing.py": {
+        "sha256": "4a5d99bea349469c3669630b2495c547eaeb2cb79e000a7fdc87ea0e801e7e17"
+      },
+      "src/mdac2/application/studio_models.py": {
+        "sha256": "d93de44864dd826cb1fe0cae02c56b6d6badc12fa4e8f64dccd6856132c5b458"
+      },
+      "src/mdac2/application/studio_timing.py": {
+        "sha256": "eeccf1c8d7b6e551bf2c050f94aa4aa11508e0b027f6b01e7f65218f52c75f5f"
+      },
+      "src/mdac2/data_preparation/fixed_grid_r2.py": {
+        "sha256": "bc64ef3c1953b31483e4df73d5b11b15841ee18ffbb2640acb8a295e675007c0"
+      },
+      "src/mdac2/data_preparation/generated_constraints.py": {
+        "sha256": "1373897f80c21fffc9eb3bb946bc79906450f1e2b4aaf225d94f1fdb98db36df"
+      },
+      "src/mdac2/data_preparation/global_postprocess.py": {
+        "sha256": "344dcb4a50cd9d5e3cdff05e7ad7693d08bc4853ca747bd179318e15c3b86d47"
+      },
+      "src/mdac2/data_preparation/hold_refinement_rc1.py": {
+        "sha256": "1c3042b9862edba81b0eb707884af0c8fe8205ec935a6fe54ce2188b40aa6e17"
+      },
+      "src/mdac2/data_preparation/joint_evaluation.py": {
+        "sha256": "2aa431f06adf63af602065f295b8a5325a583f7df8662f9216177462b50d868d"
+      },
+      "src/mdac2/data_preparation/playability_audit.py": {
+        "sha256": "023cd112c9ed125b7ee5cef7872227ca2666298f2fb8e3f6c43f33e790e956a8"
+      },
+      "src/mdac2/data_preparation/playtest_postprocess.py": {
+        "sha256": "3125f59265388173138c025e88b4ded1e5cdbd033ef70584b9f72be7972f67e0"
+      },
+      "src/mdac2/data_preparation/six_export.py": {
+        "sha256": "ec08a39a04cacbb14305b15a8d7767cedb087c4a7926dcbd1a9babc64769e9f2"
+      },
+      "src/mdac2/data_preparation/training_chart.py": {
+        "sha256": "0b65546c25c5e6d3a4eaae25969caa5810c90e6bc2ea4d837711ffcdf8f09d62"
+      },
+      "src/mdac2/data_preparation/v2_vocal_bias.py": {
+        "sha256": "58097bb271ffacf25c28925ed5a2f24c516a9897d72cd5d1b2c82150b3954cf3"
+      },
+      "src/mdac2/data_preparation/vocal_priority.py": {
+        "sha256": "f1ecc8af10838ca1f688d3ad64647d03b513ee9989fe35ba19f703072261ddcb"
+      },
+      "src/mdac2/data_preparation/vocal_priority_r2.py": {
+        "sha256": "4fe3c573cd973af8ef4379cee8f211710ebbd22c3bb5463c3dd431345a985839"
+      },
+      "tools/studio_generate.py": {
+        "sha256": "c4c0269eb13eaeb4c1b0d4bc65d4384af1896cd1f81b4e38fe2fc5b72adc3dce"
+      }
+    }
+  }
+}

@@ -10,8 +10,8 @@ import uuid
 from urllib.parse import urlsplit
 
 from mdac2.application.studio_scenes import SCENES,AVAILABLE_SCENES
-from mdac2.application.studio_models import PROFILES
-MODEL_LEVELS={key:value['difficulty'] for key,value in PROFILES.items()}
+from mdac2.application.studio_models import STRATEGIES
+STRATEGY_LEVELS={key:value['difficulty'] for key,value in STRATEGIES.items()}
 NOTICE='本谱面由MDAC项目AI制谱\ngithub: zakee039/MDAC2'
 
 

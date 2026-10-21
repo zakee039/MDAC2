@@ -14,7 +14,7 @@ from mdac2.infrastructure.project_repository import RevisionConflict
 def attach_studio(app,studio):
     app.state.studio=studio
     @app.get('/api/v1/studio')
-    def index():return dict(workflow_version=11,projects=studio.list(),models=studio.models(),scenes=SCENES,scene_availability={key:key in AVAILABLE_SCENES for key in SCENES},llm=studio.llm.public(),preferences=studio.preferences())
+    def index():return dict(workflow_version=12,projects=studio.list(),models=studio.models(),scenes=SCENES,scene_availability={key:key in AVAILABLE_SCENES for key in SCENES},llm=studio.llm.public(),preferences=studio.preferences())
     @app.post('/api/v1/studio/delivery-folder/select')
     async def select_delivery_folder():
         try:return await run_in_threadpool(studio.select_delivery_folder)

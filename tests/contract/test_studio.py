@@ -206,7 +206,7 @@ def test_generated_cover_circle_fallback_recrop_and_stale_result(context,monkeyp
     c,s=context;root=Path(__file__).resolve().parents[2]
     original_binary=studio_cover.binary
     monkeypatch.setattr(studio_cover,'binary',lambda _,name:original_binary(root,name))
-    (s.root/'recipes').mkdir();shutil.copy(root/'recipes/cover-art-h-v1.md',s.root/'recipes/cover-art-h-v1.md')
+    (s.root/'recipes').mkdir(exist_ok=True);shutil.copy(root/'recipes/cover-art-h-v1.md',s.root/'recipes/cover-art-h-v1.md')
     p=imported(c);pid=p['project_id'];base='/api/v1/studio/projects/'+pid
     r=c.post(base+'/cover/generate',json=dict(version=p['version'],metadata=p['metadata'],mode='llm'))
     assert r.status_code==200;r=r.json();cover=r['cover']
@@ -239,6 +239,32 @@ def test_generated_cover_circle_fallback_recrop_and_stale_result(context,monkeyp
     assert response.json()['cover']['origin']=='imagegen'
 
 
+def test_uploaded_cover_round_png_recrop_and_history(context,monkeypatch):
+    import io
+    from PIL import Image
+    from mdac2.application import studio_cover
+    c,s=context;root=Path(__file__).resolve().parents[2];binary=studio_cover.binary
+    monkeypatch.setattr(studio_cover,'binary',lambda _,name:binary(root,name))
+    p=imported(c);pid=p['project_id'];base='/api/v1/studio/projects/'+pid
+    data=io.BytesIO();Image.new('RGB',(800,600),'red').save(data,format='JPEG')
+    response=c.post(base+'/cover?version='+str(p['version']),content=data.getvalue())
+    assert response.status_code==200
+    p=response.json();original=s.cover_path(pid,True).read_bytes();first=s.cover_path(pid)
+    identity=p['cover']['id']
+    for crop in [None,dict(x=.2,y=.7,zoom=1.4)]:
+        if crop:p=s.save_cover(pid,p['version'],crop=crop)
+        assert p['cover']['shape']=='circle' and p['cover']['id']==identity
+        im=Image.open(s.cover_path(pid))
+        assert im.format=='PNG' and im.mode=='RGBA' and im.size==(512,512)
+        assert all(im.getpixel(xy)[3]==0 for xy in [(0,0),(511,0),(0,511),(511,511)])
+        assert im.getpixel((256,256))[3]==255
+        assert s.cover_path(pid,True).read_bytes()==original
+    again=StudioWorkflow(s.root,s.runtime,s.repository)
+    selected=again.select_cover(pid,p['version'],identity)
+    assert selected['cover']['shape']=='circle' and first.exists()
+    assert Image.open(io.BytesIO(original)).size==(800,600)
+
+
 def test_generated_asset_url_does_not_forward_credentials(monkeypatch):
     from mdac2.application import studio_imagegen as images
     root=Path(__file__).resolve().parents[2];calls=[]
@@ -251,6 +277,18 @@ def test_generated_asset_url_does_not_forward_credentials(monkeypatch):
     assert calls[-1][1]['authenticated'] is False
     monkeypatch.setattr(images.socket,'getaddrinfo',lambda *args,**kwargs:[(2,1,6,'',('127.0.0.1',443))])
     with pytest.raises(ValueError,match='不可用'):images.generate(root,profile,'Title','Artist')
+
+
+def test_generated_asset_url_accepts_proxy_synthetic_dns(monkeypatch):
+    from mdac2.application import studio_imagegen as images
+    root=Path(__file__).resolve().parents[2];calls=[]
+    profile=MetadataLLM.blank()|dict(protocol='openai_images',base_url='https://example.com/v1',model='image',proxy_url='http://127.0.0.1:7897')
+    def request(p,method,url,**kwargs):
+        calls.append((url,kwargs));return json.dumps({'data':[{'url':'https://cdn.example.com/generated.png'}]}).encode() if method=='POST' else b'image'
+    monkeypatch.setattr(images,'request',request)
+    monkeypatch.setattr(images.socket,'getaddrinfo',lambda *args,**kwargs:[(2,1,6,'',('198.18.1.14',443))])
+    assert images.generate(root,profile,'Title','Artist')[0]==b'image'
+    assert calls[-1][1]['authenticated'] is False
 
 def audio_bytes():
     import io,wave,struct
@@ -270,8 +308,10 @@ def media_binaries(monkeypatch):
 @pytest.fixture
 def context(tmp_path):
     repo=JobBackend(tmp_path/'state.sqlite');store=ArtifactStore(tmp_path/'store')
-    for m in ('v2','v3'):
+    for m in ('v2','v3','v4'):
         p=tmp_path/'models'/m;p.mkdir(parents=True);(p/'manifest.json').write_text('{}')
+    for sid in ('r2','v2','v3','v4'):
+        path=tmp_path/'recipes'/'strategies'/(sid+'.json');path.parent.mkdir(parents=True,exist_ok=True);path.write_text('{}')
     studio=StudioWorkflow(tmp_path,tmp_path/'runtime',repo)
     app=create_app(repo,store,token=TOKEN,hosts=('127.0.0.1:8000',))
     attach_studio(app,studio)
@@ -287,7 +327,7 @@ def imported(client):
 def test_auth_and_persistent_project(context):
     c,s=context
     assert c.get('/api/v1/studio',headers={'Authorization':'bad'}).status_code==401
-    p=imported(c);assert p['metadata']['creator']=='mikee' and p['metadata']['model']=='v3'
+    p=imported(c);assert p['metadata']['creator']=='mikee' and p['metadata']['strategy_id']=='v4'
     again=StudioWorkflow(s.root,s.runtime,s.repository)
     assert again.get(p['project_id'])['source_sha256']==p['source_sha256']
     assert Path(p['source']).read_bytes()==audio_bytes()
@@ -338,6 +378,25 @@ def test_confirm_enqueue_duplicate_cancel_retry(context):
     second=s.enqueue(pid,p['version'],'generate')
     assert second['attempt_id']!=a['attempt_id']
     assert len(s.get(pid)['attempts'])==2
+
+
+def test_legacy_project_strategy_is_preserved_without_rewriting_on_read(context):
+    c,s=context;p=imported(c);pid=p['project_id']
+    p['metadata']['model']='v2';p['metadata'].pop('strategy_id')
+    p['draft']=dict(p['metadata'],model='r2')
+    with s.repository._connection() as db:
+        s._write(db,p);db.commit()
+        original=db.execute('SELECT data FROM studio_projects WHERE project_id=?',(pid,)).fetchone()[0]
+    loaded=s.get(pid)
+    assert loaded['metadata']['strategy_id']=='v2' and loaded['draft']['strategy_id']=='r2'
+    assert s.list()[0]['metadata']['strategy_id']=='v2'
+    with s.repository._connection() as db:
+        assert db.execute('SELECT data FROM studio_projects WHERE project_id=?',(pid,)).fetchone()[0]==original
+    confirmed=s.confirm(pid,p['version'],loaded['draft'])
+    assert confirmed['metadata']['strategy_id']=='r2'
+    task=s.enqueue(pid,confirmed['version'],'generate')
+    request=json.loads((s.directory/pid/task['attempt_id']/'request.json').read_text())
+    assert request['strategy_id']=='r2'
 
 def test_metadata_change_invalidates_output_not_old_attempt(context):
     c,s=context;p=imported(c);pid=p['project_id'];p=s.confirm(pid,1,p['metadata'])
@@ -431,6 +490,7 @@ def test_studio_backup_restore_paths_and_package(tmp_path):
     runtime=tmp_path/'runtime';runtime.mkdir();repo=JobBackend(runtime/'state.sqlite');store=ArtifactStore(runtime/'store')
     for model in ('v2','v3'):
         dest=tmp_path/'models'/model;dest.mkdir(parents=True);(dest/'manifest.json').write_text('{}')
+    strategy=tmp_path/'recipes/strategies/v4.json';strategy.parent.mkdir(parents=True);strategy.write_text('{}')
     studio=StudioWorkflow(tmp_path,runtime,repo);source=tmp_path/'song.mp3';source.write_bytes(audio_bytes())
     p=studio.import_audio(source,'song.mp3');pid=p['project_id'];p=studio.confirm(pid,1,p['metadata'])
     a=studio.enqueue(pid,p['version'],'generate')
@@ -526,6 +586,7 @@ def test_delete_rejects_project_path_redirection(context,monkeypatch):
 def test_cover_normalization_crop_and_export_invalidation(tmp_path):
     import struct,zlib
     from mdac2.application.studio_cover import normalize
+    from mdac2.application.studio_imagegen import circle
     root=Path(__file__).resolve().parents[2]
     # A 2:1 PNG exercises horizontal crop without depending on Pillow.
     def chunk(kind,data):return struct.pack('>I',len(data))+kind+data+struct.pack('>I',zlib.crc32(kind+data)&0xffffffff)
@@ -538,7 +599,7 @@ def test_cover_normalization_crop_and_export_invalidation(tmp_path):
     p=s.confirm(pid,p['version'],p['metadata']);a=s.enqueue(pid,p['version'],'generate');s.finish(a,'succeeded','fixture');p=s.get(pid)
     p=s.save_cover(pid,p['version'],raw);assert p['generation']==a['attempt_id'] and p['export'] is None
     first=p['cover']['path'];p=s.save_cover(pid,p['version'],crop=dict(x=0,y=.5,zoom=1))
-    assert Path(first).exists() and s.cover_path(pid).read_bytes()==left
+    assert Path(first).exists() and s.cover_path(pid).read_bytes()==circle(left)
 
 
 def test_llm_named_profiles_migrate_edit_select_delete(context):
@@ -794,13 +855,14 @@ def test_scene_vocalist_override_and_model_difficulty(context,monkeypatch):
     assert s.llm.suggest('Song')['scene']=='scene_10'
     assert 'Retrocity' in seen[0] and 'Jade Temple' in seen[0] and 'scene_06' in seen[0]
     data=c.get('/api/v1/studio').json()
-    assert data['workflow_version']==11 and data['scenes']['scene_01']=='Space Station - [赛博, 硬核, 电子]'
-    assert {m['id']:m['difficulty'] for m in data['models']}=={'r2':'9.5','v2':'10.5','v3':'9.5'}
+    assert data['workflow_version']==12 and data['scenes']['scene_01']=='Space Station - [赛博, 硬核, 电子]'
+    assert {m['strategy_id']:m['difficulty'] for m in data['models']}=={'r2':'9.5','v2':'10.5','v3':'9.5','v4':'9.5'}
+    assert [m['strategy_id'] for m in data['models'] if m['default']]==['v4']
     p=imported(c);pid=p['project_id']
-    p=s.confirm(pid,p['version'],p['metadata']|dict(model='v2'))
+    p=s.confirm(pid,p['version'],p['metadata']|dict(strategy_id='v2'))
     a=s.enqueue(pid,p['version'],'generate')
     request=json.loads((s.directory/pid/a['attempt_id']/'request.json').read_text())
-    assert request['metadata']['model']=='v2'
+    assert request['metadata']['strategy_id']=='v2'
 
 
 def test_cover_extra_prompt_is_sent_and_hashed(monkeypatch):
@@ -820,23 +882,24 @@ def test_cover_extra_prompt_is_sent_and_hashed(monkeypatch):
     assert 'follow it in preference to the defaults' in bodies[0]['prompt']
 
 
-@pytest.mark.parametrize('model',['r2','v2','v3'])
-def test_all_studio_profiles_share_postprocess_and_persist_selection(context,model):
-    from mdac2.application.studio_models import PIPELINE,PROFILES
+@pytest.mark.parametrize('model',['r2','v2','v3','v4'])
+def test_all_studio_strategies_keep_weight_and_postprocess_identities(context,model):
+    from mdac2.application.studio_models import STRATEGIES,pipeline_for,strategy_manifest_for,weight_manifest_for
     from mdac2.data_preparation.audio_features import sha
     c,s=context;p=imported(c);pid=p['project_id']
     options=c.get('/api/v1/studio').json()['models']
-    assert [m['label'] for m in options]==['人声优先R2','综合V2','综合V3']
+    assert [m['label'] for m in options]==['人声优先R2','综合V2','综合V3','综合V4']
     assert all(m['available'] for m in options)
-    p=s.save_draft(pid,p['version'],p['metadata']|dict(model=model))
+    p=s.save_draft(pid,p['version'],p['metadata']|dict(strategy_id=model))
     p=s.confirm(pid,p['version'],p['draft'],dict(enabled=True,bpm=120,offset_ms=0,tap_latency_ms=0,subdivisions=12))
     a=s.enqueue(pid,p['version'],'generate')
     request=json.loads((s.directory/pid/a['attempt_id']/'request.json').read_text())
-    assert request['metadata']['model']==model
+    assert request['metadata']['strategy_id']==model
     assert request['timing']['subdivisions']==12
-    assert request['studio_pipeline']==PIPELINE
-    assert request['model_manifest_sha256']==sha(s.root/'models'/PROFILES[model]['base']/'manifest.json')
-    assert request['postprocess_manifest_sha256']==sha(s.root/'models/v3/manifest.json')
+    assert request['strategy_pipeline']==pipeline_for(model)
+    assert request['weight_model']==STRATEGIES[model]['weight_model']
+    assert request['weight_manifest_sha256']==sha(s.root/weight_manifest_for(STRATEGIES[model]['weight_model']))
+    assert request['strategy_manifest_sha256']==sha(s.root/strategy_manifest_for(model))
 
 
 def test_cover_catalog_keeps_generations_crops_and_selection_after_restart(context,monkeypatch):
