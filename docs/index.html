@@ -1,0 +1,77 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <meta name="theme-color" content="#faf8f2">
+  <meta name="description" content="一张 Muse Dash 谱面的诞生：从 NCM、音频和视频导入，到裁剪、封面、自动制谱与一键放入游戏。MDAC，本地运行的 AI 制谱工作台。">
+  <title>MDAC · 从喜欢的歌，到自己的谱</title>
+  <link rel="icon" href="assets/miku-cute.png">
+  <link rel="stylesheet" href="site.css">
+</head>
+<body>
+  <header class="header">
+    <a class="brand" href="#home" aria-label="MDAC，返回首页"><img src="assets/miku-cute.png" width="44" height="44" alt=""><strong>MDAC</strong></a>
+    <a class="button header-download" href="https://pan.quark.cn/s/838fc20a4138?pwd=jJvP" target="_blank" rel="noopener noreferrer">下载 Windows 版</a>
+  </header>
+  <main id="viewport" tabindex="0" aria-label="一张谱面的诞生，点击下一页，方向键可前后翻页">
+    <div id="track">
+      <section class="slide" id="home" aria-label="下载音源与导入">
+        <div class="panel">
+          <div class="visual"><figure class="shot" style="--ratio:2.32124"><img src="assets/01-import.jpg" width="896" height="386" alt="MDAC 真实导入界面，包含导入、确认信息、自动制谱和导出四步，支持常见音视频与 NCM" draggable="false"><figcaption>一首歌，一个工作台，一张自己的谱。</figcaption></figure></div>
+          <div class="copy"><div class="eyebrow">一张谱面的诞生 · MUSE DASH AI CHART</div><h1>把喜欢的歌，<br><em>变成能玩的谱。</em></h1><p class="description">先下载好音源，再交给 MDAC。<br>网易云 NCM、常见音频，甚至下载的视频，都能成为一张谱面的起点。</p><p class="detail">NCM 本地解码 · 视频自动提取音轨<br>MP3 / FLAC / WAV / M4A / MP4 / MKV / WebM…</p><p class="hint">点击画面，看看这张谱如何诞生</p></div>
+        </div>
+      </section>
+      <section class="slide reverse" id="trim" aria-label="一站式裁剪歌曲">
+        <div class="panel">
+          <div class="visual"><figure class="shot" style="--ratio:2.35833"><img src="assets/02-trim.jpg" width="849" height="360" alt="歌曲裁剪完整模块，包含入点出点、结尾试听、自动检测出点和可缩放波形" draggable="false"><figcaption>听一听，拖一拖，留下想玩的那一段。</figcaption></figure></div>
+          <div class="copy"><div class="eyebrow">留下最想玩的片段</div><h2>前奏太长？<br><em>就在这里剪。</em></h2><p class="description">看着波形选起点和终点，随时试听。<br>自动检测出点、试听结尾，再把喜欢的片段交给制谱流程。</p><p class="detail">裁剪、制谱、打包在一个工作台完成。<br>原曲保留，试玩包使用你选中的片段。</p></div>
+        </div>
+      </section>
+      <section class="slide" id="info" aria-label="歌曲信息与游戏场景">
+        <div class="panel">
+          <div class="visual"><figure class="shot" style="--ratio:2.62848"><img src="assets/03-info.jpg" width="849" height="323" alt="歌曲基础信息，填写名称、创作者和演唱者，选择游戏场景并预览" draggable="false"><figcaption>歌名、作者、制谱人，还有属于它的舞台。</figcaption></figure></div>
+          <div class="copy"><div class="eyebrow">让这首歌有名有姓</div><h2>填好信息，<br><em>选一个舞台。</em></h2><p class="description">写下歌名、作者和你的制谱人名字。<br>从 12 个游戏场景中挑选，也可以让 LLM 帮忙填写信息、推荐场景。</p><p class="detail">内置场景预览，选择前就能看到画面。<br>手动填写也能走完全部制谱流程。</p></div>
+        </div>
+      </section>
+      <section class="slide reverse" id="api" aria-label="可选的OpenAI兼容服务">
+        <div class="panel">
+          <div class="visual settings-visual"><figure class="shot" style="--ratio:0.71111"><img src="assets/08-settings.jpg" width="544" height="765" alt="设置对话框，可分别选择歌曲场景识别与封面生成服务，协议支持 OpenAI compatible" draggable="false"><figcaption>歌曲信息与封面，可以各用各的服务。</figcaption></figure></div>
+          <div class="copy"><div class="eyebrow">想让 AI 多帮一点忙</div><h2>接上你的 API，<br><em>按需调用。</em></h2><p class="description">支持 OpenAI 兼容聊天接口，<br>以及 OpenAI Images 兼容生图接口。填写地址、密钥与模型，就能分别配置歌曲信息和封面服务。</p><p class="detail">只有点击 LLM 按钮才调用服务。<br>自动采音、排键与导出在本地完成。</p></div>
+        </div>
+      </section>
+      <section class="slide" id="cover" aria-label="封面裁剪与生成">
+        <div class="panel">
+          <div class="visual"><figure class="shot" style="--ratio:1.84967"><img src="assets/04-cover.jpg" width="849" height="459" alt="封面完整模块，支持内嵌封面、文字封面、历次LLM图片、补充提示词、上传和调整裁剪" draggable="false"><figcaption>用现成的图，也可以生成一张新的。</figcaption></figure></div>
+          <div class="copy"><div class="eyebrow">给这张谱一个封面</div><h2>自己裁一张，<br><em>或让 AI 画一张。</em></h2><p class="description">上传喜欢的图片，自由调整圆形裁剪。<br>也可以写下想法，让生图服务结合歌名与作者生成封面。</p><p class="detail">内嵌图、文字封面、历次生成图随时切换。<br>保留原图，想换构图就重新裁剪。</p></div>
+        </div>
+      </section>
+      <section class="slide reverse" id="bpm" aria-label="BPM可选对齐">
+        <div class="panel">
+          <div class="visual"><figure class="shot" style="--ratio:1.80255"><img src="assets/05-bpm.jpg" width="849" height="471" alt="BPM完整模块，强制对齐默认未勾选，支持自动测拍、手打测拍、鼓声试听和偏移调整" draggable="false"><figcaption>不测也能制谱；想继续精修，再打开节拍网格。</figcaption></figure></div>
+          <div class="copy"><div class="eyebrow">这一站，可以跳过</div><h2>不用先测 BPM，<br><em>也能开始制谱。</em></h2><p class="description">准备交给谱师继续打磨？<br>自动测拍、手打或手动填写 BPM，再开启每拍十二等分对齐，为后续编辑整理好时间网格。</p><p class="detail">边听音乐边听鼓点，调整 BPM 与偏移。<br>对齐更方便修改，但不保证手感更好。</p></div>
+        </div>
+      </section>
+      <section class="slide" id="generate" aria-label="自动制谱与难度定级">
+        <div class="panel">
+          <div class="visual"><figure class="shot" style="--ratio:2.77399"><img src="assets/06-generate.jpg" width="896" height="323" alt="真实V5制谱结果，包含同轨间距难度滑块、预测10.3级及已确认的导出定级" draggable="false"><figcaption>自动采音、排键、冲突检查，然后由你确认等级。</figcaption></figure></div>
+          <div class="copy"><div class="eyebrow">让旋律变成上下轨的节奏</div><h2>选好策略，<br><em>生成你的谱。</em></h2><p class="description">默认综合 V4，也可尝试人声优先 R2 或综合 V5。V5 还能用间距滑块调节疏密，让难度更合你的习惯。</p><p class="detail">生成后查看参考定级，自行修改并确认。<br>这是本地估算，最终手感留给游戏里验收。</p></div>
+        </div>
+      </section>
+      <section class="slide reverse" id="export" aria-label="一键放入游戏">
+        <div class="panel">
+          <div class="visual"><figure class="shot" style="--ratio:4.14815"><img src="assets/07-export.jpg" width="896" height="216" alt="试玩包已准备好，提供放入Custom_Albums、下载MDM以及两份真实历史导出包" draggable="false"><figcaption>从这首歌，到这个 .mdm 文件，故事有了结果。</figcaption></figure></div>
+          <div class="copy"><div class="eyebrow">最后，去游戏里试一试</div><h2>一键放入游戏，<br><em>开始你的试玩。</em></h2><p class="description">首次选择自己的 Custom_Albums 目录，之后一键放入。也可以下载 .mdm 试玩包，留给自己或继续编辑。</p><p class="detail">每次导出保留历史，同名不同版本不覆盖。<br>需已配置支持自定义谱面的游戏环境。</p></div>
+        </div>
+      </section>
+      <section class="slide" id="download" aria-label="下载MDAC">
+        <div class="panel">
+          <div class="visual brand-ending"><div class="app-sign"><img src="assets/miku-cute.png" width="220" height="220" alt="MDAC应用图标" draggable="false"><strong>MDAC</strong><span>Muse Dash AI Chart</span></div></div>
+          <div class="copy"><div class="eyebrow">下一张谱，从你喜欢的歌开始</div><h2>下载，解压，<br><em>双击 start.bat。</em></h2><p class="description">Windows CPU 便携版，工具与权重已打包。<br>打开本地工作台，就可以开始。</p><p class="detail">v0.5.0 · 中文 / English / 日本語<br>夸克网盘 · 提取码 jJvP</p><div class="actions"><a class="button" href="https://pan.quark.cn/s/838fc20a4138?pwd=jJvP" target="_blank" rel="noopener noreferrer">下载 Windows 版</a><a class="button" href="https://github.com/zakee039/MDAC2" target="_blank" rel="noopener noreferrer">查看项目</a></div><button class="return-home" type="button">返回首页</button></div>
+        </div>
+      </section>
+    </div>
+  </main>
+  <script src="site.js"></script>
+</body>
+</html>

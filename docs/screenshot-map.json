@@ -1,0 +1,66 @@
+[
+  {
+    "source": "docs/assets/01-import.jpg",
+    "display": "docs/assets/01-import.jpg",
+    "chapter": "home",
+    "width": 896,
+    "height": 386,
+    "capture": "Actual v0.5.0 UI; complete relevant module, no mock UI or credentials; isolated project copy."
+  },
+  {
+    "source": "docs/assets/02-trim.jpg",
+    "display": "docs/assets/02-trim.jpg",
+    "chapter": "trim",
+    "width": 849,
+    "height": 360,
+    "capture": "Actual v0.5.0 UI; complete relevant module, no mock UI or credentials; isolated project copy."
+  },
+  {
+    "source": "docs/assets/03-info.jpg",
+    "display": "docs/assets/03-info.jpg",
+    "chapter": "info",
+    "width": 849,
+    "height": 323,
+    "capture": "Actual v0.5.0 UI; complete relevant module, no mock UI or credentials; isolated project copy."
+  },
+  {
+    "source": "docs/assets/04-cover.jpg",
+    "display": "docs/assets/04-cover.jpg",
+    "chapter": "cover",
+    "width": 849,
+    "height": 459,
+    "capture": "Actual v0.5.0 UI; complete relevant module, no mock UI or credentials; isolated project copy."
+  },
+  {
+    "source": "docs/assets/05-bpm.jpg",
+    "display": "docs/assets/05-bpm.jpg",
+    "chapter": "bpm",
+    "width": 849,
+    "height": 471,
+    "capture": "Actual v0.5.0 UI; complete relevant module, no mock UI or credentials; isolated project copy."
+  },
+  {
+    "source": "docs/assets/06-generate.jpg",
+    "display": "docs/assets/06-generate.jpg",
+    "chapter": "generate",
+    "width": 896,
+    "height": 323,
+    "capture": "Actual v0.5.0 UI; complete relevant module, no mock UI or credentials; isolated project copy."
+  },
+  {
+    "source": "docs/assets/07-export.jpg",
+    "display": "docs/assets/07-export.jpg",
+    "chapter": "export",
+    "width": 896,
+    "height": 216,
+    "capture": "Actual v0.5.0 UI; complete relevant module, no mock UI or credentials; isolated project copy."
+  },
+  {
+    "source": "docs/assets/08-settings.jpg",
+    "display": "docs/assets/08-settings.jpg",
+    "chapter": "api",
+    "width": 544,
+    "height": 765,
+    "capture": "Actual v0.5.0 UI; complete relevant module, no mock UI or credentials; isolated project copy."
+  }
+]
