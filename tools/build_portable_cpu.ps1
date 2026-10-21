@@ -1,10 +1,10 @@
-param([string]$Output = (Join-Path (Split-Path -Parent $PSScriptRoot) 'MDAC2-v0.4.0-portable-cpu.zip'), [switch]$KeepStage)
+param([string]$Output = (Join-Path (Split-Path -Parent $PSScriptRoot) 'MDAC2-v0.5.0-portable-cpu.zip'), [switch]$KeepStage)
 $ErrorActionPreference = 'Stop'
 $source = (Resolve-Path (Join-Path $PSScriptRoot '..')).Path
 $Output = [IO.Path]::GetFullPath($Output)
 if(Test-Path -LiteralPath $Output){throw "Refusing to overwrite existing package: $Output"}
 $stage = Join-Path ([IO.Path]::GetTempPath()) ('mdac2-portable-' + [guid]::NewGuid().ToString('N'))
-$root = Join-Path $stage 'MDAC2-v0.4.0-portable-cpu'
+$root = Join-Path $stage 'MDAC2-v0.5.0-portable-cpu'
 New-Item -ItemType Directory -Force $root | Out-Null
 
 function AssertStagePath([string]$path) {
@@ -29,11 +29,11 @@ function Robo([string]$from,[string]$to,[string[]]$extra=@()) {
   if($LASTEXITCODE -gt 7){throw "robocopy failed ($LASTEXITCODE): $from"}
 }
 
-# The studio exposes R2/V2/V3/V4; V4 reuses V3 weights. Keep V1 files in
+# The studio exposes R2/V2/V3/V4/V5; V4/V5 reuse V3 weights. Keep V1 files in
 # the repository, but do not make every portable user carry them.
 Robo (Join-Path $source 'src') (Join-Path $root 'src') @('/XD','__pycache__','*.egg-info')
-CopyPath 'models/v2'; CopyPath 'models/v3'; CopyPath 'models/v4'; CopyPath 'models/registry.json'; CopyPath 'recipes'; CopyPath 'web/dist'; CopyPath 'start.bat'; CopyPath 'README.md'; CopyPath 'CHANGELOG.md'
-CopyPath 'tools/studio_generate.py'; CopyPath 'tools/generate_joint_playtest.py'; CopyPath 'tools/studio_detect_timing.py'; CopyPath 'tools/studio_detect_trim.py'
+CopyPath 'models/v2'; CopyPath 'models/v3'; CopyPath 'models/v4'; CopyPath 'models/v5'; CopyPath 'models/registry.json'; CopyPath 'recipes'; CopyPath 'web/dist'; CopyPath 'start.bat'; CopyPath 'README.md'; CopyPath 'CHANGELOG.md'
+CopyPath 'tools/studio_generate.py'; CopyPath 'tools/studio_generate_v5.py'; CopyPath 'tools/generate_joint_playtest.py'; CopyPath 'tools/studio_detect_timing.py'; CopyPath 'tools/studio_detect_trim.py'
 CopyPath 'tools/private/beat-this'; CopyPath 'tools/experiments/beat_this/models.json'
 
 # Only the pinned RoFormer inputs are needed at runtime. The comparison and
@@ -93,7 +93,7 @@ foreach($file in @('_conda.exe','Uninstall-Miniconda3.exe','.condarc','EULA.txt'
   if(Test-Path -LiteralPath $candidate){[IO.File]::Delete($candidate)}
 }
 
-@{application_version='0.4.0';runtime='cpu';api_python='3.12';worker_python='3.13';entrypoint='start.bat';default_strategy='v4';strategies=@('R2','V2','V3','V4');weight_models=@('V2','V3');excludes=@('CUDA runtime','GPU environment','V1 historical weights','development audio stores','FFmpeg docs/archive','debug symbols/static import libraries','private project data','chart runtime database')} |
+@{application_version='0.5.0';runtime='cpu';api_python='3.12';worker_python='3.13';entrypoint='start.bat';default_strategy='v4';strategies=@('R2','V2','V3','V4','V5');weight_models=@('V2','V3');excludes=@('CUDA runtime','GPU environment','V1 historical weights','development audio stores','FFmpeg docs/archive','debug symbols/static import libraries','private project data','chart runtime database')} |
   ConvertTo-Json -Depth 5 | Set-Content (Join-Path $root 'PORTABLE-MANIFEST.json') -Encoding UTF8
 & 7z.exe a -tzip -mx=1 -mmt=on -y $Output $root | Out-Null
 if($LASTEXITCODE -ne 0){throw "7-Zip failed ($LASTEXITCODE)"}

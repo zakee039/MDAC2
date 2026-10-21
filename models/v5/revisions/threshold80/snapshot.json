@@ -1,0 +1,11 @@
+{
+  "reason": "User raised the dense-segment threshold from 50% to 80%; preserved before adding 100 ms same-lane spacing and the no-Boss-near-hold rule",
+  "files": {
+    "recipes/strategies/v5.json": "00f49c2e67d199134f4b859f1bde6b4783af20a711ef27230fcc6af671384ac3",
+    "models/v5/manifest.json": "5ac339286621dcf896e524941878dba86103cf63aad5c959bbdd5d0aa9e35e47",
+    "src/mdac2/application/strategies/v5.py": "5c971f5e25c8aaf353a00c2dd3951ad85adf1affd21752cadda16155e6b88774",
+    "src/mdac2/application/strategies/v5_density.py": "0f9da7c0fcd8c82ba7cc2d59890c657602e4286ff6c5cafedbfc5469a9829c50",
+    "src/mdac2/application/studio_strategy_catalog.py": "c864073feace573ef4aac5db37c9c8bf98a22fefb20aa6403cf45d5469cad8ad",
+    "tools/register_v5_strategy.py": "5b1312c083e2ccb4a456849040cedbec0fcba707a83f1f7b53eb692b25428e9d"
+  }
+}

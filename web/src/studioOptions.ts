@@ -37,6 +37,7 @@ export const chartStrategyNames:Record<string,[string,string,string]>={
  v2:['综合V2','Balanced V2','総合V2'],
  v3:['综合V3','Balanced V3','総合V3'],
  v4:['综合V4','Balanced V4','総合V4'],
+ v5:['综合V5','Balanced V5','総合V5'],
 }
 
 export function chartStrategyLabel(key:unknown,language:string){

@@ -1,0 +1,25 @@
+{
+  "reason": "User requested lower Boss frequency; preserve initial unpublished V5 and its prior playtest",
+  "files": {
+    "recipes/strategies/v5.json": {
+      "sha256": "83eb25a31dd0ebecac87c8454ecaf91b765a32e2584438ecc6f3605c988f8bf7",
+      "snapshot": "recipes/strategies/v5.json"
+    },
+    "models/v5/manifest.json": {
+      "sha256": "e45500e28522c87651405c660389a5ce1edb7a6cbf3540b8b8c64828e297d9cd",
+      "snapshot": "models/v5/manifest.json"
+    },
+    "src/mdac2/application/strategies/v5.py": {
+      "sha256": "77dde5065ca0b33d300268c7807535381dba64bb2e9d3f51ac7bdd96e22c69bf",
+      "snapshot": "src/mdac2/application/strategies/v5.py"
+    },
+    "src/mdac2/application/studio_strategy_catalog.py": {
+      "sha256": "f8eaecfe179d5d2c68459fb27dc78ab18b8050b5d0162a9d47e5aa357540642a",
+      "snapshot": "src/mdac2/application/studio_strategy_catalog.py"
+    },
+    "tools/register_v5_strategy.py": {
+      "sha256": "e82271f6dd5a372a9d2563bfe2df8193d8f76c4c16d5108c73c82dba3978a229",
+      "snapshot": "tools/register_v5_strategy.py"
+    }
+  }
+}

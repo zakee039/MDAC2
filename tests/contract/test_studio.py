@@ -310,7 +310,7 @@ def context(tmp_path):
     repo=JobBackend(tmp_path/'state.sqlite');store=ArtifactStore(tmp_path/'store')
     for m in ('v2','v3','v4'):
         p=tmp_path/'models'/m;p.mkdir(parents=True);(p/'manifest.json').write_text('{}')
-    for sid in ('r2','v2','v3','v4'):
+    for sid in ('r2','v2','v3','v4','v5'):
         path=tmp_path/'recipes'/'strategies'/(sid+'.json');path.parent.mkdir(parents=True,exist_ok=True);path.write_text('{}')
     studio=StudioWorkflow(tmp_path,tmp_path/'runtime',repo)
     app=create_app(repo,store,token=TOKEN,hosts=('127.0.0.1:8000',))
@@ -855,8 +855,8 @@ def test_scene_vocalist_override_and_model_difficulty(context,monkeypatch):
     assert s.llm.suggest('Song')['scene']=='scene_10'
     assert 'Retrocity' in seen[0] and 'Jade Temple' in seen[0] and 'scene_06' in seen[0]
     data=c.get('/api/v1/studio').json()
-    assert data['workflow_version']==12 and data['scenes']['scene_01']=='Space Station - [赛博, 硬核, 电子]'
-    assert {m['strategy_id']:m['difficulty'] for m in data['models']}=={'r2':'9.5','v2':'10.5','v3':'9.5','v4':'9.5'}
+    assert data['workflow_version']==13 and data['scenes']['scene_01']=='Space Station - [赛博, 硬核, 电子]'
+    assert {m['strategy_id']:m['difficulty'] for m in data['models']}=={'r2':'9.5','v2':'10.5','v3':'9.5','v4':'9.5','v5':'9.5'}
     assert [m['strategy_id'] for m in data['models'] if m['default']]==['v4']
     p=imported(c);pid=p['project_id']
     p=s.confirm(pid,p['version'],p['metadata']|dict(strategy_id='v2'))
@@ -882,13 +882,13 @@ def test_cover_extra_prompt_is_sent_and_hashed(monkeypatch):
     assert 'follow it in preference to the defaults' in bodies[0]['prompt']
 
 
-@pytest.mark.parametrize('model',['r2','v2','v3','v4'])
+@pytest.mark.parametrize('model',['r2','v2','v3','v4','v5'])
 def test_all_studio_strategies_keep_weight_and_postprocess_identities(context,model):
-    from mdac2.application.studio_models import STRATEGIES,pipeline_for,strategy_manifest_for,weight_manifest_for
+    from mdac2.application.studio_strategy_catalog import STRATEGIES,pipeline_for,strategy_manifest_for,weight_manifest_for
     from mdac2.data_preparation.audio_features import sha
     c,s=context;p=imported(c);pid=p['project_id']
     options=c.get('/api/v1/studio').json()['models']
-    assert [m['label'] for m in options]==['人声优先R2','综合V2','综合V3','综合V4']
+    assert [m['label'] for m in options]==['人声优先R2','综合V2','综合V3','综合V4','综合V5']
     assert all(m['available'] for m in options)
     p=s.save_draft(pid,p['version'],p['metadata']|dict(strategy_id=model))
     p=s.confirm(pid,p['version'],p['draft'],dict(enabled=True,bpm=120,offset_ms=0,tap_latency_ms=0,subdivisions=12))
@@ -900,6 +900,24 @@ def test_all_studio_strategies_keep_weight_and_postprocess_identities(context,mo
     assert request['weight_model']==STRATEGIES[model]['weight_model']
     assert request['weight_manifest_sha256']==sha(s.root/weight_manifest_for(STRATEGIES[model]['weight_model']))
     assert request['strategy_manifest_sha256']==sha(s.root/strategy_manifest_for(model))
+
+
+def test_v5_specials_support_difficulty_confirmation_and_export_request(context):
+    from mdac2.application.strategies.v5_events import SpecialEvent
+    from mdac2.data_preparation.audio_features import sha
+    c,s=context;p=imported(c);pid=p['project_id']
+    p=s.confirm(pid,p['version'],p['metadata']|dict(strategy_id='v5'))
+    attempt=s.enqueue(pid,p['version'],'generate');folder=s.directory/pid/attempt['attempt_id']
+    boss=SpecialEvent('boss','masher',('air',),1.,2.,('a','b'),'0G','test',source_note_count=2,target_hits=4)
+    (folder/'chart.json').write_text(json.dumps(dict(strategy_id='v5',duration=3,events=[boss.to_dict()])))
+    (folder/'result.json').write_text(json.dumps(dict(status='succeeded',chart_sha256=sha(folder/'chart.json'))))
+    s.finish(attempt,'succeeded','fixture');p=s.get(pid)
+    assert p['difficulty_prediction']['target_hits']==4
+    p=s.confirm_difficulty(pid,p['version'],9.5)
+    export=s.enqueue(pid,p['version'],'export')
+    request=json.loads((s.directory/pid/export['attempt_id']/'request.json').read_text())
+    assert request['strategy_id']=='v5' and request['difficulty']['algorithm']=='mdac-rule-rating-v5-target-v1'
+    assert request['generation']==str(folder.resolve())
 
 
 def test_cover_catalog_keeps_generations_crops_and_selection_after_restart(context,monkeypatch):
@@ -967,3 +985,40 @@ def test_image_failure_detail_is_safe_and_does_not_destroy_history(context,monke
     assert '429' in p['cover']['fallback_message'] and 'private' not in p['cover']['fallback_message']
     assert p['cover']['origin']=='local_text'
     p=s.select_cover(pid,p['version'],previous);assert p['cover']['origin']=='imagegen'
+
+
+def test_export_history_stores_packages_in_the_project_chart_folder(context):
+    import zipfile
+    from uuid import uuid4
+    c,s=context
+    p=imported(c);pid=p['project_id'];base='/api/v1/studio/projects/'+pid
+    attempt=str(uuid4());folder=Path(s.directory)/pid/attempt;folder.mkdir(parents=True)
+    with zipfile.ZipFile(folder/'chart.mdm','w') as z:
+        z.writestr('info.json',json.dumps(dict(difficulty2='11.9')))
+    (folder/'result.json').write_text(json.dumps(dict(status='succeeded',difficulty='11.9')))
+    record=dict(attempt_id=attempt,project_id=pid,operation='export',state='queued',created=100.)
+    with s.repository._connection() as conn:
+        conn.execute('INSERT INTO studio_attempts VALUES (?,?,?)',(attempt,pid,json.dumps(record)))
+        conn.commit()
+    s.finish(record,'succeeded','fixture')
+    chart=s.chart_folder(pid)
+    stored=chart/'[11.9]song - mikee.mdm'
+    assert stored.is_file() and stored.read_bytes()==(folder/'chart.mdm').read_bytes()
+    items=c.get(base+'/exports').json()
+    assert len(items)==1 and items[0]['attempt_id']==attempt
+    assert items[0]['package']==str(stored) and items[0]['folder']==str(chart)
+    assert items[0]['name']==stored.name
+    assert items[0]['difficulty']=='11.9' and items[0]['finished']>0
+    # The very same chart is reused, never stored twice.
+    again=s._store_package(pid,attempt,s.get(pid))
+    assert again==stored and len(list(chart.iterdir()))==1
+    # A different chart under the same name gets the documented suffix.
+    with zipfile.ZipFile(folder/'other.mdm','w') as z:
+        z.writestr('info.json',json.dumps(dict(difficulty2='11.9')))
+        z.writestr('extra.txt','different')
+    second=s.directory/pid/(attempt+'-b');second.mkdir()
+    (second/'chart.mdm').write_bytes((folder/'other.mdm').read_bytes())
+    (second/'result.json').write_text(json.dumps(dict(status='succeeded',difficulty='11.9')))
+    other=s._store_package(pid,attempt+'-b',s.get(pid))
+    assert other.name=='[11.9]song - mikee v2.mdm' and other.is_file()
+    assert c.post(base+'/exports/not-a-uuid/reveal').status_code==422

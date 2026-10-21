@@ -6,12 +6,13 @@ import shutil
 import subprocess
 import threading
 import time
+import zipfile
 from uuid import uuid4
 
 from mdac2.application.studio_metadata import clean,SCENES,MetadataLLM,STRATEGY_LEVELS,package_filename,cover_prompt
 from mdac2.data_preparation.audio_features import sha
 from mdac2.infrastructure.project_repository import RevisionConflict
-from mdac2.application.studio_models import (STRATEGIES,
+from mdac2.application.studio_strategy_catalog import (STRATEGIES,
     pipeline_for, strategy_manifest_for, weight_manifest_for)
 from mdac2.application.studio_scenes import AVAILABLE_SCENES
 
@@ -60,6 +61,40 @@ class StudioWorkflow:
             _plain(folder)
             for item in folder.rglob('*'):_plain(item)
         return folder
+    def chart_folder(self,pid,create=False):
+        """One stable place for every finished package of this project."""
+        folder=self._project_folder(pid)/'chart'
+        if create:folder.mkdir(parents=True,exist_ok=True)
+        return folder
+    def _store_package(self,pid,attempt_id,d,report=None):
+        """Copy a finished .mdm into <project>/chart and name it after the song.
+
+        Identical charts reuse the existing file; a different chart that would
+        collide gets the documented ' vN' suffix instead of overwriting.
+        """
+        source=self.directory/pid/attempt_id/'chart.mdm'
+        if not source.is_file():raise ValueError('导出结果缺失')
+        if report is None:
+            try:report=json.loads((source.with_name('result.json')).read_text(encoding='utf-8'))
+            except (OSError,ValueError):report={}
+        difficulty=report.get('difficulty')
+        if difficulty is None:difficulty=self.package_difficulty(source)
+        digest=sha(source);folder=self.chart_folder(pid,create=True)
+        for revision in range(1,1000):
+            dest=folder/package_filename(d['metadata'],difficulty,revision)
+            if dest.exists():
+                # Same chart already stored: never keep a second copy of it.
+                if dest.is_file() and sha(dest)==digest:return dest
+                continue
+            temp=dest.with_name('.'+dest.name+'.tmp')
+            shutil.copyfile(source,temp)
+            try:
+                if sha(temp)!=digest:raise ValueError('试玩包写入校验失败')
+                os.replace(temp,dest)
+            finally:
+                temp.unlink(missing_ok=True)
+            return dest
+        raise ValueError('同名试玩包过多，请清理项目的 chart 文件夹')
     def delete(self,pid,version):
         if self.timing_project==pid:raise RevisionConflict('Timing analysis is running')
         with self.repository._connection() as c:
@@ -132,9 +167,18 @@ class StudioWorkflow:
         if d.get('generation'):
             try:d['difficulty_prediction']=self._difficulty(d)
             except (OSError,ValueError,KeyError):d['difficulty_prediction']=None
+            # Audio, cover and song details survive every pipeline revision; only
+            # the chart itself can become stale, and it is flagged, never deleted.
+            try:
+                from mdac2.application.studio_strategy_catalog import pipeline_for
+                result=json.loads((self.directory/pid/d['generation']/'result.json').read_text(encoding='utf-8'))
+                current=pipeline_for(d['metadata']['strategy_id'])
+                d['generation_pipeline']=result.get('strategy_pipeline')
+                d['generation_stale']=bool(result.get('strategy_pipeline')) and result['strategy_pipeline']!=current
+            except (OSError,ValueError,KeyError):d['generation_stale']=False
         return d
     def _difficulty(self,d):
-        from mdac2.application.studio_difficulty import estimate
+        from mdac2.application.studio_difficulty_v5 import estimate
         folder=self.directory/d['project_id']/d['generation']
         if not (folder/'result.json').is_file() or not (folder/'chart.json').is_file():
             raise ValueError('无法读取完整谱面，请重新制谱')
@@ -356,8 +400,9 @@ class StudioWorkflow:
                 d.update(timing_analysis=result,version=version+1,updated=time.time());self._write(c,d);c.commit()
             return self.get(pid)
         finally:self.timing_project=None;self.timing_lock.release()
-    def confirm(self,pid,version,metadata,timing=None,trim=None):
+    def confirm(self,pid,version,metadata,timing=None,trim=None,spacing=None):
         from mdac2.application.studio_timing import settings
+        from mdac2.application.strategies.v5_spacing import spacing_seconds
         if set(metadata)!={'title','author','creator','scene','strategy_id'}:raise ValueError('歌曲信息字段不完整')
         meta={k:clean(v,empty=k=='author') for k,v in metadata.items()}
         if meta['scene'] not in AVAILABLE_SCENES or meta['strategy_id'] not in STRATEGIES:raise ValueError('无效场景或制谱策略，特殊玩法场景暂不支持')
@@ -373,8 +418,12 @@ class StudioWorkflow:
             if not supplied_timing:
                 from mdac2.application.studio_timing import rebase
                 timing=rebase(timing,interval['start_ms']-trim_settings(d.get('trim'),duration)['start_ms'])
-            if interval!=trim_settings(d.get('trim'),duration) or meta!=d['metadata'] or timing!=settings(d.get('timing')):d.update(generation=None,export=None,difficulty=None)
-            d.update(metadata=meta,timing=timing,timing_draft=None,trim=interval,trim_draft=None,draft=None,confirmed=True,version=version+1,updated=time.time())
+            stored=round(spacing_seconds(d.get('spacing_ms'))*1000)
+            spacing=stored if spacing is None else round(spacing_seconds(spacing)*1000)
+            if (interval!=trim_settings(d.get('trim'),duration) or meta!=d['metadata']
+                    or timing!=settings(d.get('timing')) or spacing!=stored):d.update(generation=None,export=None,difficulty=None)
+            d.update(metadata=meta,timing=timing,timing_draft=None,trim=interval,trim_draft=None,draft=None,confirmed=True,
+                     spacing_ms=spacing,version=version+1,updated=time.time())
             self._write(c,d);c.execute('UPDATE projects SET title=? WHERE project_id=?',(meta['title'],pid));c.commit()
         return d
     def suggest(self,pid,version):
@@ -418,6 +467,8 @@ class StudioWorkflow:
                 strategy_manifest_sha256=sha(self.root/strategy_manifest_for(d['metadata']['strategy_id'])),
                 device=os.environ.get('MDAC2_DEVICE','cuda'))
             request['timing']=timing
+            from mdac2.application.strategies.v5_spacing import spacing_seconds
+            request['options']=dict(spacing_ms=round(spacing_seconds(d.get('spacing_ms'))*1000))
             request['trim']=d.get('trim')
             if d.get('trim') and d.get('prepared_audio'):
                 from mdac2.application.studio_trim import settings as trim_settings
@@ -440,6 +491,11 @@ class StudioWorkflow:
         with self.repository._connection() as c:
             c.execute('BEGIN IMMEDIATE');d=self._read(c,a['project_id'])
             a.update(state=state,message=message,finished=time.time())
+            if state=='succeeded' and a.get('operation')=='export':
+                # Keep the package inside the project so the history has one
+                # folder to open, independent of the attempt that produced it.
+                try:a['chart_path']=str(self._store_package(a['project_id'],a['attempt_id'],d))
+                except (OSError,ValueError,KeyError,zipfile.BadZipFile):a['chart_path']=None
             c.execute('UPDATE studio_attempts SET data=? WHERE attempt_id=?',(json.dumps(a),a['attempt_id']))
             if d['active_attempt']==a['attempt_id']:
                 d.update(active_attempt=None,version=d['version']+1,updated=time.time())
@@ -452,10 +508,42 @@ class StudioWorkflow:
         d=self.get(pid)
         if d['active_attempt']:(self.directory/pid/d['active_attempt']/'CANCEL').touch()
         return dict(ok=True)
+    def exports(self,pid):
+        """Every finished package of this project, newest first; nothing is removed."""
+        d=self.get(pid);items=[]
+        for a in d['attempts']:
+            if a.get('operation')!='export' or a.get('state')!='succeeded':continue
+            folder=self.directory/pid/a['attempt_id']
+            stored=Path(a['chart_path']) if a.get('chart_path') else None
+            path=stored if stored and stored.is_file() else folder/'chart.mdm'
+            if not path.is_file():continue
+            try:report=json.loads((folder/'result.json').read_text(encoding='utf-8'))
+            except (OSError,ValueError):report={}
+            difficulty=report.get('difficulty')
+            if difficulty is None:
+                try:difficulty=self.package_difficulty(path)
+                except (OSError,ValueError,KeyError,zipfile.BadZipFile):difficulty=None
+            items.append(dict(attempt_id=a['attempt_id'],created=a.get('created'),finished=a.get('finished'),
+                name=path.name,difficulty=difficulty,folder=str(path.parent),package=str(path),
+                current=a['attempt_id']==d.get('export')))
+        return sorted(items,key=lambda i:i.get('finished') or i.get('created') or 0,reverse=True)
+    def reveal_export(self,pid,attempt_id):
+        """Open the file manager at the package itself inside the project chart folder."""
+        import subprocess,sys
+        target=next((Path(i['package']) for i in self.exports(pid) if i['attempt_id']==attempt_id),None)
+        if target is None or not target.is_file():raise ValueError('此导出记录不存在或已被移除')
+        if os.name=='nt':subprocess.Popen(['explorer','/select,',str(target)])
+        elif sys.platform=='darwin':subprocess.Popen(['open','-R',str(target)])
+        else:subprocess.Popen(['xdg-open',str(target.parent)])
+        return dict(ok=True,folder=str(target.parent),package=str(target))
     def package(self,pid):
         d=self.get(pid)
         if not d['export']:raise ValueError('尚无可导出的资源包')
-        path=self.directory/pid/d['export']/'chart.mdm';report=json.loads(path.with_name('result.json').read_text(encoding='utf-8'))
+        folder=self.directory/pid/d['export']
+        attempt=next((a for a in d['attempts'] if a['attempt_id']==d['export']),{})
+        stored=Path(attempt['chart_path']) if attempt.get('chart_path') else None
+        path=stored if stored and stored.is_file() else folder/'chart.mdm'
+        report=json.loads((folder/'result.json').read_text(encoding='utf-8'))
         if sha(path)!=report['package_sha256']:raise ValueError('资源包校验失败，请重新导出')
         return path,d
     @staticmethod
@@ -493,6 +581,16 @@ class StudioWorkflow:
             if temp is not None:temp.unlink(missing_ok=True)
         if sha(dest)!=digest:raise ValueError('交付校验失败')
         return dict(path=str(dest),sha256=sha(dest))
+    def _backfill_chart_folder(self,attempts):
+        """Packages exported before <project>/chart existed move in on next start."""
+        for a in attempts:
+            if a.get('operation')!='export' or a.get('state')!='succeeded' or a.get('chart_path'):continue
+            try:
+                with self.repository._connection() as c:d=self._read(c,a['project_id'])
+                a['chart_path']=str(self._store_package(a['project_id'],a['attempt_id'],d))
+            except (OSError,ValueError,KeyError,zipfile.BadZipFile):continue
+            with self.repository._connection() as c:
+                c.execute('UPDATE studio_attempts SET data=? WHERE attempt_id=?',(json.dumps(a),a['attempt_id']));c.commit()
     def start(self):
         if os.name=='nt':
             import msvcrt
@@ -508,6 +606,7 @@ class StudioWorkflow:
             pending=[json.loads(r[0]) for r in c.execute('SELECT data FROM studio_attempts')]
         for a in pending:
             if a['state']=='running':self.finish(a,'interrupted','服务中断；保留原结果，可重试。旧进程如仍运行会由GPU锁阻止重复执行。')
+        self._backfill_chart_folder(pending)
         self.thread=threading.Thread(target=self.loop,daemon=True);self.thread.start()
     @staticmethod
     def terminate(process):
@@ -529,8 +628,10 @@ class StudioWorkflow:
             try:
                 with (out/'worker.log').open('w',encoding='utf-8') as log:
                     worker_python=Path(os.environ.get('MDAC2_WORKER_PYTHON',self.root/'tools/.deps/pretraining-py313/Scripts/python.exe'))
+                    request=json.loads((out/'request.json').read_text(encoding='utf-8'))
+                    worker='tools/studio_generate_v5.py' if request.get('strategy_id')=='v5' else 'tools/studio_generate.py'
                     process=subprocess.Popen([str(worker_python),
-                        str(self.root/'tools/studio_generate.py'),'--request',str((out/'request.json').resolve()),'--output',str(out.resolve())],
+                        str(self.root/worker),'--request',str((out/'request.json').resolve()),'--output',str(out.resolve())],
                         cwd=self.root,stdout=log,stderr=log,creationflags=getattr(subprocess,'CREATE_NO_WINDOW',0),
                         env={**os.environ,'PYTHONUTF8':'1'})
                     self.process=process;a.update(state='running',pid=process.pid,message='正在处理')

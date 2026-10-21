@@ -10,7 +10,7 @@ import mdac2
 
 
 def test_installed_version_matches_source():
-    assert version("mdac2") == mdac2.__version__ == "0.4.0"
+    assert version("mdac2") == mdac2.__version__ == "0.5.0"
 
 
 def test_core_has_no_runtime_dependencies():
@@ -22,7 +22,7 @@ def test_core_has_no_runtime_dependencies():
 def test_import_outside_checkout_is_lightweight(tmp_path):
     code = (
         "import mdac2, sys; "
-        "assert mdac2.__version__ == '0.4.0'; "
+        "assert mdac2.__version__ == '0.5.0'; "
         "assert not {'torch', 'fastapi', 'librosa', 'pytest'} & sys.modules.keys()"
     )
     result = subprocess.run([sys.executable, "-I", "-c", code], cwd=tmp_path,

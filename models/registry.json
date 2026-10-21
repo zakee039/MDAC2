@@ -24,6 +24,12 @@
       "manifest_sha256": "92ea58a16c60acf39f00ae1f8679dfada11b6b04ba50a84aa19448b9e6dfee5d",
       "application_version": "0.4.0",
       "status": "user_selected_default_strategy"
+    },
+    "v5": {
+      "manifest": "models/v5/manifest.json",
+      "application_version": "0.5.0",
+      "status": "optional_strategy",
+      "manifest_sha256": "9cca1783a9fb5327c4de84c61b1738d4c67272863aa7c10c564939453d034932"
     }
   },
   "strategies": {
@@ -50,6 +56,12 @@
       "weight_model": "v3",
       "status": "user_selected_default_strategy",
       "manifest_sha256": "c9764e30266367615bbeb9e5f55476038004d02239dedfe09ef35d0907c56727"
+    },
+    "v5": {
+      "manifest": "recipes/strategies/v5.json",
+      "weight_model": "v3",
+      "status": "optional_strategy",
+      "manifest_sha256": "1b5cf1e11806dabd3bef19e2da93f0a8fa205122e7f2be096483fb0a5c30d67a"
     }
   },
   "current_recipe": null,

@@ -14,7 +14,7 @@ from mdac2.infrastructure.project_repository import RevisionConflict
 def attach_studio(app,studio):
     app.state.studio=studio
     @app.get('/api/v1/studio')
-    def index():return dict(workflow_version=12,projects=studio.list(),models=studio.models(),scenes=SCENES,scene_availability={key:key in AVAILABLE_SCENES for key in SCENES},llm=studio.llm.public(),preferences=studio.preferences())
+    def index():return dict(workflow_version=13,projects=studio.list(),models=studio.models(),scenes=SCENES,scene_availability={key:key in AVAILABLE_SCENES for key in SCENES},llm=studio.llm.public(),preferences=studio.preferences())
     @app.post('/api/v1/studio/delivery-folder/select')
     async def select_delivery_folder():
         try:return await run_in_threadpool(studio.select_delivery_folder)
@@ -90,7 +90,16 @@ def attach_studio(app,studio):
         b=await json_body(request);return studio.save_draft(identifier(pid),b['version'],b['metadata'],b.get('cover_prompt'),b.get('timing'),b.get('trim'))
     @app.post('/api/v1/studio/projects/{pid}/confirm')
     async def confirm(pid:str,request:Request):
-        b=await json_body(request);return studio.confirm(identifier(pid),b['version'],b['metadata'],b.get('timing'),b.get('trim'))
+        b=await json_body(request)
+        return studio.confirm(identifier(pid),b['version'],b['metadata'],b.get('timing'),b.get('trim'),b.get('spacing'))
+    @app.get('/api/v1/studio/projects/{pid}/exports')
+    def exports(pid:str):return studio.exports(identifier(pid))
+    @app.post('/api/v1/studio/projects/{pid}/exports/{attempt_id}/reveal')
+    async def reveal_export(pid:str,attempt_id:str):
+        from uuid import UUID
+        try:folder=await run_in_threadpool(studio.reveal_export,identifier(pid),str(UUID(identifier(attempt_id))))
+        except ValueError as exc:return error(422,'EXPORT_HISTORY',str(exc))
+        return folder
     @app.post('/api/v1/studio/projects/{pid}/suggest')
     async def suggest(pid:str,request:Request):
         b=await json_body(request)

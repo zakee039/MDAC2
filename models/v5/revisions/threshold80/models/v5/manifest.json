@@ -1,0 +1,141 @@
+{
+  "schema_version": 1,
+  "product": "MDAC2",
+  "strategy_id": "v5",
+  "weight_model": "v3",
+  "application_version": "0.4.0",
+  "release_date": "2026-10-21",
+  "status": "optional_strategy_playtest_pending",
+  "parent_model": "v4",
+  "parent_manifest_sha256": "92ea58a16c60acf39f00ae1f8679dfada11b6b04ba50a84aa19448b9e6dfee5d",
+  "strategy_manifest": "recipes/strategies/v5.json",
+  "strategy_manifest_sha256": "00f49c2e67d199134f4b859f1bde6b4783af20a711ef27230fcc6af671384ac3",
+  "checkpoints": {
+    "onset": {
+      "path": "models/v3/weights/onset.pt",
+      "sha256": "bf4b4bd0b33fea90b9f9f4606127ea1d0cf0a4bbd2bea31d153953f81e5d8d50",
+      "bytes": 40048515,
+      "source_experiment": "supervised-dual-v1-20260928",
+      "source_best_epoch": 3,
+      "parameters": 3331074,
+      "architecture": "vocals-accompaniment-onset-v1"
+    },
+    "arrangement": {
+      "path": "models/v3/weights/arrangement.pt",
+      "sha256": "426c1e6a358050a8bcf716638b553a3c1dbe2b42761fbd0c48ccf364a31853d5",
+      "bytes": 132008058,
+      "source_experiment": "supervised-dual-v6-20260930",
+      "source_best_epoch": 18,
+      "parameters": 10993122,
+      "architecture": "mix-bigru512-causal-history256-v6"
+    }
+  },
+  "postprocessing": {
+    "prior_path": "models/v3/weights/run-prior.json",
+    "prior_sha256": "6a27352cb2c0f9d6fc97f8f06d5742274d8c959a9fd5863fffad96568b875558",
+    "sources": {
+      "src/mdac2/application/strategies/v4.py": {
+        "sha256": "25a33c5e736c18eab4692e7c8a45706e34db5b10c30707f6150e78b0a6fb0a43"
+      },
+      "src/mdac2/application/strategies/v5.py": {
+        "sha256": "5c971f5e25c8aaf353a00c2dd3951ad85adf1affd21752cadda16155e6b88774"
+      },
+      "src/mdac2/application/strategies/v5_density.py": {
+        "sha256": "0f9da7c0fcd8c82ba7cc2d59890c657602e4286ff6c5cafedbfc5469a9829c50"
+      },
+      "src/mdac2/application/strategies/v5_events.py": {
+        "sha256": "e198f8ac7a93bf8886f2a08d2285a9e43dbead3ffbb0bdc0611ab96234ca9f98"
+      },
+      "src/mdac2/application/strategies/v5_export.py": {
+        "sha256": "8783471ac87088e7e836d400e2d5eb913d3afc9011f91592eba7fa372c5c9165"
+      },
+      "src/mdac2/application/strategies/v5_holds.py": {
+        "sha256": "24c1bf007679e744a38303c11af1bf7ff5d11a11197ca026fe8409cff1697ce1"
+      },
+      "src/mdac2/application/studio_difficulty_v5.py": {
+        "sha256": "a0ef6fa12a5d8ed5653b36c51729d1557ca8547247f6020a7b8026ce883a230d"
+      },
+      "src/mdac2/application/studio_models.py": {
+        "sha256": "d93de44864dd826cb1fe0cae02c56b6d6badc12fa4e8f64dccd6856132c5b458"
+      },
+      "src/mdac2/application/studio_strategy_catalog.py": {
+        "sha256": "c864073feace573ef4aac5db37c9c8bf98a22fefb20aa6403cf45d5469cad8ad"
+      },
+      "src/mdac2/application/studio_timing.py": {
+        "sha256": "eeccf1c8d7b6e551bf2c050f94aa4aa11508e0b027f6b01e7f65218f52c75f5f"
+      },
+      "src/mdac2/application/studio_timing_v4.py": {
+        "sha256": "08c57962c8f3560ca833d168b0df400cabde045cdc4f6c0254cfd557c3f4cb66"
+      },
+      "src/mdac2/data_preparation/fixed_grid_r2.py": {
+        "sha256": "bc64ef3c1953b31483e4df73d5b11b15841ee18ffbb2640acb8a295e675007c0"
+      },
+      "src/mdac2/data_preparation/generated_constraints.py": {
+        "sha256": "1373897f80c21fffc9eb3bb946bc79906450f1e2b4aaf225d94f1fdb98db36df"
+      },
+      "src/mdac2/data_preparation/global_postprocess.py": {
+        "sha256": "344dcb4a50cd9d5e3cdff05e7ad7693d08bc4853ca747bd179318e15c3b86d47"
+      },
+      "src/mdac2/data_preparation/global_postprocess_v4.py": {
+        "sha256": "31a0e9115c56c9dccb46d43a799c7026201f199d2b7bdd37d3a06ea03e5be66a"
+      },
+      "src/mdac2/data_preparation/hold_refinement_rc1.py": {
+        "sha256": "1c3042b9862edba81b0eb707884af0c8fe8205ec935a6fe54ce2188b40aa6e17"
+      },
+      "src/mdac2/data_preparation/joint_evaluation.py": {
+        "sha256": "2aa431f06adf63af602065f295b8a5325a583f7df8662f9216177462b50d868d"
+      },
+      "src/mdac2/data_preparation/playability_audit.py": {
+        "sha256": "023cd112c9ed125b7ee5cef7872227ca2666298f2fb8e3f6c43f33e790e956a8"
+      },
+      "src/mdac2/data_preparation/playability_audit_v4.py": {
+        "sha256": "aa54f7856d0ff8f2b6381dc8dc8ced54d7962557aad64b09105bdb298a8d7633"
+      },
+      "src/mdac2/data_preparation/playtest_postprocess.py": {
+        "sha256": "3125f59265388173138c025e88b4ded1e5cdbd033ef70584b9f72be7972f67e0"
+      },
+      "src/mdac2/data_preparation/six_export.py": {
+        "sha256": "ec08a39a04cacbb14305b15a8d7767cedb087c4a7926dcbd1a9babc64769e9f2"
+      },
+      "src/mdac2/data_preparation/training_chart.py": {
+        "sha256": "0b65546c25c5e6d3a4eaae25969caa5810c90e6bc2ea4d837711ffcdf8f09d62"
+      },
+      "src/mdac2/data_preparation/v2_vocal_bias.py": {
+        "sha256": "58097bb271ffacf25c28925ed5a2f24c516a9897d72cd5d1b2c82150b3954cf3"
+      },
+      "src/mdac2/data_preparation/vocal_priority.py": {
+        "sha256": "f1ecc8af10838ca1f688d3ad64647d03b513ee9989fe35ba19f703072261ddcb"
+      },
+      "src/mdac2/data_preparation/vocal_priority_r2.py": {
+        "sha256": "4fe3c573cd973af8ef4379cee8f211710ebbd22c3bb5463c3dd431345a985839"
+      },
+      "tools/studio_generate.py": {
+        "sha256": "c4c0269eb13eaeb4c1b0d4bc65d4384af1896cd1f81b4e38fe2fc5b72adc3dce"
+      },
+      "tools/studio_generate_v5.py": {
+        "sha256": "81657a12891ebfc00a68ea38c2062852c1551c221cee63631e85f4c0d902d091"
+      }
+    }
+  },
+  "policy": {
+    "version": "studio-v5-sustain-masher-1ms-v4",
+    "hold_detection": [
+      "vocals",
+      "mix"
+    ],
+    "hold_interior": "both lanes: masher only",
+    "dense_segments": "discarded / retained > 0.8 only; otherwise delete excess",
+    "discard_to_retain_threshold": 0.8,
+    "boss_merge_gap_ms": 500,
+    "boss_merge_comparison": "strictly_less",
+    "masher_target": "2N; merged interval source notes counted once",
+    "masher_export": "original interval; no game-enforced custom hit counter",
+    "soft_edges": "first/last 5 seconds, local power below 3% of song p90",
+    "storage_ms": 1
+  },
+  "validation": {
+    "human_playtest": "pending",
+    "game_acceptance": "pending"
+  },
+  "version_note": "V4 weights and onset/phrase stages; independent sustained-region detection, dense-segment mashers and quiet-edge collectibles. No retraining. V4 stays default."
+}

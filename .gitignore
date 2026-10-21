@@ -24,3 +24,6 @@ models/**/weights/
 # Portable releases are delivered separately from source control.
 /MDAC2-v*-portable-cpu.zip
 /MDAC2-v*-portable-cpu.zip.sha256
+
+# Local assistant memory and project data.
+.workbuddy/

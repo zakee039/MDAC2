@@ -34,6 +34,9 @@ async function assignModel(role:'scene'|'cover',event:Event){const field=event.t
 async function chooseLLM(event:Event){const id=(event.target as HTMLSelectElement).value;if(!id){llm.value=blankLLM();error.value='';notice.value='';return}await act(async()=>applyLLM(await api('/llm/select',{id})))}
 async function deleteLLM(){await act(async()=>{applyLLM(await api('/llm/delete',{id:llm.value.id}));notice.value=t('configDeleted')})}
 const timing=ref<BeatSettings>(defaultBeatSettings())
+const spacing=ref(125)
+const holdSpacing=computed(()=>spacing.value*2)
+const exportHistory=ref<any[]>([])
 const trim=ref<Trim>({start_ms:0,end_ms:1000}),trimPlayer=ref<InstanceType<typeof StudioTrim>>(),bpmPlayer=ref<InstanceType<typeof StudioBpm>>()
 function updateTrim(value:Trim){if(!Object.values(value).every(Number.isFinite))return;trim.value=value;dirty.value=true}
 const requests=ref<Record<string,{state:string;started:number;elapsed:number;message?:string}>>({})
@@ -85,9 +88,9 @@ async function api(path:string,body?:unknown,raw?:File){
 }
 async function act(fn:()=>Promise<void>){if(busy.value)return;busy.value=true;error.value='';notice.value='';try{await fn()}catch(e){error.value=(e as Error).message}finally{busy.value=false}}
 async function refreshList(){const d=await api('');projects.value=d.projects;return d}
-async function connect(){await act(async()=>{const d=await refreshList();if(d.workflow_version!==12)throw new Error(t('restartServer'));connected.value=true;models.value=d.models;scenes.value=d.scenes;sceneAvailability.value=d.scene_availability;applyLLM(d.llm);language.value=d.preferences.language;deliveryFolder.value=d.preferences.delivery_folder||''})}
-function setProject(p:any){project.value=p;trim.value=p.trim_draft||p.trim||{start_ms:0,end_ms:Math.round((p.prepared_audio?.duration||1)*1000)};const upgraded=upgradeBeatSettings(p.timing_draft||p.timing);timing.value=upgraded.timing;form.value={...(p.draft||p.metadata)};dirty.value=!!p.draft||upgraded.needsConfirmation;if(upgraded.needsConfirmation)notice.value=t('gridUpgrade');crop.value=p.cover?.crop||{x:.5,y:.5,zoom:1};cropDirty.value=false;cropOpen.value=false;coverPrompt.value=p.cover_prompt??p.cover?.user_prompt??'';promptDirty.value=false}
-async function open(p:any){await act(async()=>{await preserveCurrent();clearTimeout(timer);epoch++;setProject(await api('/projects/'+p.project_id));await prepareCovers();stage.value=dirty.value?2:projectStage(project.value);emit('closeManager');poll()})}
+async function connect(){await act(async()=>{const d=await refreshList();if(d.workflow_version!==13)throw new Error(t('restartServer'));connected.value=true;models.value=d.models;scenes.value=d.scenes;sceneAvailability.value=d.scene_availability;applyLLM(d.llm);language.value=d.preferences.language;deliveryFolder.value=d.preferences.delivery_folder||''})}
+function setProject(p:any){project.value=p;spacing.value=Number(p.spacing_ms)||125;trim.value=p.trim_draft||p.trim||{start_ms:0,end_ms:Math.round((p.prepared_audio?.duration||1)*1000)};const upgraded=upgradeBeatSettings(p.timing_draft||p.timing);timing.value=upgraded.timing;form.value={...(p.draft||p.metadata)};dirty.value=!!p.draft||upgraded.needsConfirmation;if(upgraded.needsConfirmation)notice.value=t('gridUpgrade');crop.value=p.cover?.crop||{x:.5,y:.5,zoom:1};cropDirty.value=false;cropOpen.value=false;coverPrompt.value=p.cover_prompt??p.cover?.user_prompt??'';promptDirty.value=false}
+async function open(p:any){await act(async()=>{await preserveCurrent();clearTimeout(timer);epoch++;setProject(await api('/projects/'+p.project_id));await prepareCovers();stage.value=dirty.value?2:projectStage(project.value);emit('closeManager');poll();loadExports()})}
 async function preserveCurrent(){
  if(!project.value)return
  clearTimeout(timer);epoch++
@@ -113,6 +116,17 @@ async function generateLLMCover(){
  return p.cover.origin==='local_text'
 }
 async function confirm(){await act(async()=>{await preserveCurrent();setProject(await api('/projects/'+project.value.project_id+'/confirm',{version:project.value.version,metadata:form.value,timing:timing.value,trim:trim.value}));stage.value=3;await refreshList()})}
+async function changeSpacing(event:Event){
+ const field=event.target as HTMLInputElement,value=Number(field.value)
+ await act(async()=>{
+  try{setProject(await api('/projects/'+project.value.project_id+'/confirm',{version:project.value.version,metadata:{...form.value},timing:timing.value,trim:trim.value,spacing:value}));await refreshList()}
+  catch(e){field.value=String(spacing.value);throw e}
+ })
+}
+async function loadExports(){if(!project.value)return;try{exportHistory.value=await api('/projects/'+project.value.project_id+'/exports')}catch{exportHistory.value=[]}}
+async function revealExport(id:string){await act(async()=>{await api('/projects/'+project.value.project_id+'/exports/'+id+'/reveal',{});notice.value=t('revealed')})}
+function exportTime(value:unknown){const n=Number(value);return Number.isFinite(n)&&n>0?new Date(n*1000).toLocaleString():''}
+watch(()=>[project.value?.project_id,project.value?.export,stage.value].join('|'),()=>{if(stage.value===4)loadExports()})
 async function chooseChartStrategy(event:Event){const field=event.target as HTMLSelectElement;const strategy_id=field.value;await act(async()=>{setProject(await api('/projects/'+project.value.project_id+'/confirm',{version:project.value.version,metadata:{...form.value,strategy_id},timing:timing.value,trim:trim.value}));await refreshList()});field.value=form.value.strategy_id}
 
 async function run(operation:string){await act(async()=>{await api('/projects/'+project.value.project_id+'/run',{version:project.value.version,operation});project.value=await api('/projects/'+project.value.project_id);stage.value=operation==='generate'?3:4;poll()})}
@@ -197,7 +211,10 @@ onBeforeUnmount(()=>{clearInterval(statusClock);disposed=true;clearTimeout(timer
   </section>
   <section v-show="stage===3" class="panel content">
    <div class="generation-layout">
-    <div><h2>{{t('generate')}}</h2><p>{{t('generateHint')}}</p><label class="generation-model">{{t('strategy')}}<select :value="form.strategy_id" :disabled="busy||dirty||!!project.active_attempt" @change="chooseChartStrategy"><option v-for="m in models" :key="m.strategy_id" :value="m.strategy_id" :disabled="!m.available">{{strategyName(m.strategy_id)}}</option></select></label><p v-if="dirty">{{t('dirty')}}</p></div>
+    <div><h2>{{t('generate')}}</h2><p>{{t('generateHint')}}</p><label class="generation-model">{{t('strategy')}}<select :value="form.strategy_id" :disabled="busy||dirty||!!project.active_attempt" @change="chooseChartStrategy"><option v-for="m in models" :key="m.strategy_id" :value="m.strategy_id" :disabled="!m.available">{{strategyName(m.strategy_id)}}</option></select></label>
+     <label class="generation-spacing">{{t('spacing')}}<span>{{spacing}} ms · {{t('holdSpacing')}} {{holdSpacing}} ms</span><input :value="spacing" type="range" min="75" max="175" step="5" :disabled="busy||dirty||!!project.active_attempt" @change="changeSpacing"/></label>
+     <p class="spacing-hint">{{t('spacingHint')}}</p>
+     <p v-if="project.generation_stale" class="notice">{{t('generationStale')}}</p><p v-if="dirty">{{t('dirty')}}</p></div>
     <div class="rating-panel"><h3>{{t('predictedRating')}} <strong>{{project.difficulty_prediction?.value?.toFixed(1)??'—'}}</strong></h3>
      <p>{{t(project.generation&&!project.difficulty_prediction?'ratingUnavailable':project.generation?'ratingHint':'ratingWaiting')}}</p>
      <div class="rating-actions"><label>{{t('exportRating')}}<input v-model="ratingInput" type="number" min="1" max="20" step="0.1" :disabled="busy||!!project.active_attempt||!project.difficulty_prediction" @blur="ratingValid&&(ratingInput=oneDecimal(ratingInput))"/></label><button :disabled="busy||!!project.active_attempt||pendingChanges||!project.difficulty_prediction||!ratingValid||ratingSaved" @click="confirmRating">{{t(ratingSaved?'ratingConfirmed':'confirmRating')}}</button></div>
@@ -205,11 +222,28 @@ onBeforeUnmount(()=>{clearInterval(statusClock);disposed=true;clearTimeout(timer
    </div>
    <div class="generation-footer"><div><button class="primary" :disabled="busy||dirty||!!project.active_attempt||!project.confirmed" @click="run('generate')">{{t(project.generation?'retry':'start')}}</button><button v-if="project.active_attempt" :disabled="busy" @click="cancel">{{t('cancel')}}</button></div><button class="primary" :disabled="busy||!!project.active_attempt||!project.generation||pendingChanges||!ratingSaved" @click="goStep(4)">{{t('nextPackage')}}</button></div>
   </section>
-  <section v-show="stage===4" class="panel content"><h2>{{t('export')}}</h2>
-   <p v-if="project.active_attempt" role="status">{{t('packageBuilding')}}</p>
-   <button v-if="project.active_attempt" :disabled="busy" @click="cancel">{{t('cancel')}}</button>
-   <template v-else-if="project.export"><p>{{t('packageReady')}}</p><button :disabled="busy" @click="deliver">{{t('deliver')}}</button><button class="primary" :disabled="busy" @click="download">{{t('download')}}</button></template>
-   <template v-else><p>{{t('packageRetryHint')}}</p><button class="primary" :disabled="busy||!project.generation||pendingChanges" @click="run('export')">{{t('packageRetry')}}</button></template>
+  <section v-show="stage===4" class="panel content">
+   <div class="export-layout">
+    <div><h2>{{t('export')}}</h2>
+     <p v-if="project.active_attempt" role="status">{{t('packageBuilding')}}</p>
+     <button v-if="project.active_attempt" :disabled="busy" @click="cancel">{{t('cancel')}}</button>
+     <template v-else-if="project.export"><p>{{t('packageReady')}}</p><button :disabled="busy" @click="deliver">{{t('deliver')}}</button><button class="primary" :disabled="busy" @click="download">{{t('download')}}</button></template>
+     <template v-else><p>{{t('packageRetryHint')}}</p><button class="primary" :disabled="busy||!project.generation||pendingChanges" @click="run('export')">{{t('packageRetry')}}</button></template>
+    </div>
+    <div class="export-history">
+     <h3>{{t('exportHistory')}}</h3>
+     <p>{{t('exportHistoryHint')}}</p>
+     <ol v-if="exportHistory.length">
+      <li v-for="e in exportHistory" :key="e.attempt_id">
+       <button type="button" :disabled="busy" :title="e.package" @click="revealExport(e.attempt_id)">
+        <strong>{{e.name}}</strong>
+        <small>{{e.difficulty}} · {{exportTime(e.finished)}}<span v-if="e.current"> · {{t('exportCurrent')}}</span></small>
+       </button>
+      </li>
+     </ol>
+     <p v-else>{{t('exportHistoryEmpty')}}</p>
+    </div>
+   </div>
   </section>
   <section v-if="stage!==1&&project.attempts?.length" class="panel content history"><h3>{{t('history')}}</h3><ol><li v-for="a in [...project.attempts].reverse()" :key="a.attempt_id"><strong>{{t(a.operation==='generate'?'generate':'export')}}</strong><span>{{t(a.state)}}</span><small v-if="a.state==='running'">{{t(a.progress?.stage||'busy')}}</small></li></ol></section>
  </template>
@@ -253,7 +287,7 @@ onBeforeUnmount(()=>{clearInterval(statusClock);disposed=true;clearTimeout(timer
 
 .steps{display:grid;grid-template-columns:repeat(4,1fr);gap:10px;margin:0 0 24px}.steps button{padding:18px 10px;font-size:13px;gap:10px;background:#fff;white-space:nowrap}.steps button.selected{border-color:#87a979;background:#eff5eb;color:#276e59}.steps span{font-size:11px;opacity:.65}.content{padding:28px;margin:18px 0}.content h2{font-size:22px;margin:0 0 12px}.content p,.import-panel p{color:#61756a;line-height:1.8;font-size:13px}.content button{margin:8px 10px 8px 0}.import-panel{padding:64px 24px;text-align:center;min-height:360px;display:flex;align-items:center;flex-direction:column}.import-panel h1{font-size:26px;margin:22px 0 8px}.import-panel button{margin:20px 0 18px}.import-icon{width:70px;height:70px;background:#eef5e9;border-radius:20px;display:grid;place-items:center;color:#3c8a6b}.import-panel small,small{font-size:11px;color:#758479;line-height:1.8}.project-caption{display:flex;align-items:center;gap:20px;margin:24px 2px 12px;overflow-wrap:anywhere}.project-caption span{font-size:12px;color:#758479}.fields{display:grid;grid-template-columns:1fr 1fr;gap:18px;margin:22px 0}.fields .wide{grid-column:1/-1}label{display:flex;flex-direction:column;gap:8px;font-size:13px}input:not([type=checkbox]),select{padding:11px;border:1px solid #dce5db;border-radius:7px;background:white;min-width:0;width:100%}.details-layout{display:grid;grid-template-columns:minmax(0,2fr) minmax(260px,1fr);gap:36px}.cover-panel{padding-top:18px}.cover-panel h3{font-size:14px;margin:4px 0 12px}.cover-preview,.cover-placeholder{width:100%;aspect-ratio:1;max-width:400px;border-radius:10px;border:1px solid #e1e8df;background:#f2f6ee}.cover-placeholder{display:flex;align-items:center;justify-content:center;flex-direction:column;gap:14px;color:#779381;font-size:12px}.cover-panel p{font-size:12px;line-height:1.7}.cover-panel input[type=file]{font-size:11px;padding:8px}.cover-panel input[type=range]{padding:0;margin:5px 0}.cover-upload{margin:12px 0}.notice{padding:12px;border-radius:8px;background:#edf5e6;overflow-wrap:anywhere}.history h3{font-size:14px}.history ol{list-style:none;padding:0}.history li{display:flex;flex-wrap:wrap;gap:20px;padding:12px 0;border-top:1px solid #edf0eb;font-size:12px}.history small{flex-basis:100%}.manager-actions{display:flex;flex-wrap:wrap;gap:8px;margin:24px 0 16px}.chosen{background:#edf5e6}.search{margin-bottom:12px}.project-row{display:flex;align-items:center;gap:10px;padding:17px 0;border-bottom:1px solid #edf0eb}.project-row>div{flex:1;min-width:0}.project-row strong{display:block;overflow-wrap:anywhere;font-size:14px}.project-row small{display:block;margin-top:7px}.language-select{margin:26px 0}.check{flex-direction:row;align-items:center}fieldset{border:0;padding:0;min-width:0}hr{border:0;border-top:1px solid #e5ebe1;margin:26px 0}blockquote{margin:20px 0;padding:12px 20px;line-height:2;border-left:3px solid #98b77e;background:#f5f8f1;font-size:13px}.section-title h2{font-size:20px}.section-title+ p,dialog p{font-size:13px}.section-title~fieldset>button{margin:10px 12px 0 0}@media(max-width:760px){.steps{gap:5px}.steps button{padding:12px 5px;font-size:11px;flex-direction:column;gap:4px}.details-layout{grid-template-columns:1fr;gap:16px}.cover-panel{max-width:none}.content{padding:22px}.fields{gap:12px}.project-caption{flex-wrap:wrap;gap:8px}.import-panel{padding:42px 20px}.import-panel h1{font-size:22px}}@media(max-width:450px){.fields{grid-template-columns:1fr}.project-row{flex-wrap:wrap}.project-row>div{flex-basis:100%}}
 .content .cover-sources button,.content .cover-sources select{box-sizing:border-box;height:50px;min-height:50px;max-height:50px;margin:0;align-self:center;line-height:1.2}
-.generation-layout{display:grid;grid-template-columns:1fr 1fr;gap:40px}.rating-panel{padding:20px 24px;border:1px solid #e1e8df;border-radius:12px;background:#f7faf4;align-self:start}.rating-panel h3{margin:0;font-size:16px;display:flex;align-items:center;gap:18px}.rating-panel h3 strong{font-size:28px;color:#258b75;font-variant-numeric:tabular-nums}.rating-actions{display:flex;align-items:flex-end;gap:14px}.rating-actions label{flex:1;min-width:0}.content .rating-actions button{margin:0;min-height:42px;white-space:nowrap}.generation-footer{display:flex;align-items:center;justify-content:space-between;gap:20px;margin-top:12px}.content .generation-footer>button{margin-right:0}@media(max-width:760px){.generation-layout{grid-template-columns:1fr;gap:12px}.generation-footer{align-items:flex-end;flex-wrap:wrap}.generation-footer>button{margin-left:auto}.rating-panel{padding:18px}}
+.export-layout{display:grid;grid-template-columns:minmax(0,1.05fr) minmax(280px,1fr);gap:32px;align-items:start}.export-history{min-width:0}.export-history h3{font-size:14px;margin:4px 0 10px}.export-history p{font-size:12px}.export-history ol{list-style:none;padding:0;margin:6px 0 0}.export-history li+li{border-top:1px solid #edf0eb}.export-history button{display:flex;flex-direction:column;gap:4px;width:100%;text-align:left;padding:11px 12px;background:#fff;border:1px solid #e3ebdf;border-radius:8px;margin:6px 0;font-size:12px;white-space:normal;overflow-wrap:anywhere}.export-history button:hover{border-color:#87a979;background:#f6faf3}.export-history strong{font-size:12px;font-weight:600}.export-history small{font-size:11px;color:#758479}.generation-spacing span{margin-left:auto;font-size:12px;color:#758479}.generation-spacing input[type=range]{padding:0;margin:2px 0}.spacing-hint{font-size:12px;color:#758479;margin:0 0 10px}@media(max-width:760px){.export-layout{grid-template-columns:1fr;gap:18px}}.generation-layout{display:grid;grid-template-columns:1fr 1fr;gap:40px}.rating-panel{padding:20px 24px;border:1px solid #e1e8df;border-radius:12px;background:#f7faf4;align-self:start}.rating-panel h3{margin:0;font-size:16px;display:flex;align-items:center;gap:18px}.rating-panel h3 strong{font-size:28px;color:#258b75;font-variant-numeric:tabular-nums}.rating-actions{display:flex;align-items:flex-end;gap:14px}.rating-actions label{flex:1;min-width:0}.content .rating-actions button{margin:0;min-height:42px;white-space:nowrap}.generation-footer{display:flex;align-items:center;justify-content:space-between;gap:20px;margin-top:12px}.content .generation-footer>button{margin-right:0}@media(max-width:760px){.generation-layout{grid-template-columns:1fr;gap:12px}.generation-footer{align-items:flex-end;flex-wrap:wrap}.generation-footer>button{margin-left:auto}.rating-panel{padding:18px}}
 .basic-intro{display:grid;grid-template-columns:minmax(0,3fr) minmax(0,2fr);gap:24px;align-items:start}.scene-preview{margin:0;max-width:400px;width:100%;justify-self:center;border:1px solid #dce5db;border-radius:9px;overflow:hidden;background:#f2f6ee}.scene-preview img{display:block;width:100%;height:auto;aspect-ratio:770/433;object-fit:contain}.scene-preview figcaption{text-align:center;padding:6px 12px;color:#61756a;font-size:12px}@media(max-width:560px){.basic-intro{grid-template-columns:1fr}.scene-preview{max-width:100%}}
 .request-row>span{flex:1;min-width:160px;line-height:1.6;overflow-wrap:anywhere}.request-result{font-size:12px;line-height:1.6;max-width:240px;overflow-wrap:anywhere}.request-row>.request-error,.llm-buttons>.request-error{color:#b43d32;background:none;border:0;padding:0;border-radius:0}
 .module-heading{flex-wrap:wrap}.module-note{font-style:normal;font-size:14px;color:#293f35;line-height:1.5}

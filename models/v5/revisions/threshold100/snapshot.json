@@ -1,0 +1,11 @@
+{
+  "reason": "User changed discard/retain threshold from 100% to 50%",
+  "files": {
+    "recipes/strategies/v5.json": "d5d1d7ff01cdbf8482013d5c1bf395d52f5dab8517ed3ee41a27e1875e498769",
+    "models/v5/manifest.json": "294a5513991947f56f3242c7e8de61d94a6d597ac493975a80f67d664396475a",
+    "src/mdac2/application/strategies/v5.py": "cab247c278fbda661bccdbfeacb3338ad79b33cf6f5cc34da8865e8c9695e337",
+    "src/mdac2/application/strategies/v5_density.py": "fe1368a6058e4e11ef3b6b5a2775a5c489705aa2b5ed18507e261a8018b29c1d",
+    "src/mdac2/application/studio_strategy_catalog.py": "61ce97b43df1373afa3c11e73ed2b6bb188b58cd4470015bc15bcb9a3be739bc",
+    "tools/register_v5_strategy.py": "142b31ae01d68fe162e74b16be671314af29aeb4715161374eaa11c14ca785ca"
+  }
+}

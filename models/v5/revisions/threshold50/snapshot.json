@@ -1,0 +1,11 @@
+{
+  "reason": "User changed threshold from 50% to 80%",
+  "files": {
+    "recipes/strategies/v5.json": "70a3395efc35be9066d5012569de95615acbb82c85b117539cb3b6048b03f6b3",
+    "models/v5/manifest.json": "363de5edf638308d6240832b21e7621eee1263b8aa5bb43ac9a7614d0e4255e4",
+    "src/mdac2/application/strategies/v5.py": "837c194229796d93756c043ef43d2769473764df9cfa6a40b492deaf8d6468f4",
+    "src/mdac2/application/strategies/v5_density.py": "a7a9968a0cae212bdba26546231dd261f341275aa0f48160efda311469246db7",
+    "src/mdac2/application/studio_strategy_catalog.py": "514678a9d75ccfbf409d70fef43f708a766c8ec5694e0b0fdf125c1e3a53e2cf",
+    "tools/register_v5_strategy.py": "13b6ce9fcf762d0b1e668502c0f2cb46779a639dc5f3d5c812031ae0251df387"
+  }
+}
