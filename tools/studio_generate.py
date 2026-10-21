@@ -200,7 +200,7 @@ def export(request,out):
     assert semantics(es)==semantics(read_bms(text,chart['duration']))
     (package/'map2.bms').write_text(text,encoding='utf-8')
     save(package/'map2.talk',opening_talk())
-    for name,extra in [('music',[]),('demo',['-t','15'])]:
+    for name,extra in [('music',[]),('demo',['-t','20'])]:
         run_ffmpeg(['-n','-i',source/'mix.wav',*extra,'-map_metadata',-1,'-c:a','libvorbis','-q:a',6,package/(name+'.ogg')])
     cover=request.get('cover')
     if cover:

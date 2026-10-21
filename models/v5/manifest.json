@@ -7,9 +7,9 @@
   "release_date": "2026-10-21",
   "status": "optional_strategy",
   "parent_model": "v4",
-  "parent_manifest_sha256": "92ea58a16c60acf39f00ae1f8679dfada11b6b04ba50a84aa19448b9e6dfee5d",
+  "parent_manifest_sha256": "68cc8f73512af87720fb0960efef3c1366a5692592554ae56db4015b058266e0",
   "strategy_manifest": "recipes/strategies/v5.json",
-  "strategy_manifest_sha256": "1b5cf1e11806dabd3bef19e2da93f0a8fa205122e7f2be096483fb0a5c30d67a",
+  "strategy_manifest_sha256": "e72f69f61c11126097e3b45290170329ef3066437eba86d526b2bc01322c1423",
   "checkpoints": {
     "onset": {
       "path": "models/v3/weights/onset.pt",
@@ -116,10 +116,10 @@
         "sha256": "4fe3c573cd973af8ef4379cee8f211710ebbd22c3bb5463c3dd431345a985839"
       },
       "tools/studio_generate.py": {
-        "sha256": "c4c0269eb13eaeb4c1b0d4bc65d4384af1896cd1f81b4e38fe2fc5b72adc3dce"
+        "sha256": "ef6ffd3593c9b67179854a4197470249308f5828b9eeb0d42c87f13ef1a1f1e7"
       },
       "tools/studio_generate_v5.py": {
-        "sha256": "14551c743dca0d836e69cabd59e389827f842284bd5c23d78d0ce7334e034e0d"
+        "sha256": "35280667a85d59e851223870eb081fc7cc4251dda1ce4742efa3084b201cb9c6"
       }
     }
   },

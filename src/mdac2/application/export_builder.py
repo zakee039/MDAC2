@@ -18,6 +18,9 @@ def digest(data):
     return hashlib.sha256(data).hexdigest()
 
 
+DEMO_SECONDS = 20  # Preview cap; clips shorter than this keep their full length.
+
+
 def default_cover():
     # A declared placeholder, not an inferred user cover or external resource.
     def chunk(kind, data):
@@ -77,7 +80,8 @@ def build_export(repository, store, decoder, *, project_id, expected_revision, t
             if seconds(q) != timing.t(q)+plan.audio_padding_seconds:
                 raise ValueError("BMS timing roundtrip failed")
     music, music_error = encode_ogg(decoder, padded, rate, channels)
-    demo_pcm = pcm[:15*rate*channels*2]
+    # Demo preview: first 20 s of the canonical audio, or the whole clip when it is shorter.
+    demo_pcm = pcm[:DEMO_SECONDS*rate*channels*2]
     demo, demo_error = encode_ogg(decoder, demo_pcm, rate, channels)
     resources = {"music.ogg": music, "demo.ogg": demo, "cover.png": default_cover(),
         "map2.bms": plan.text.encode("utf-8"), "info.json": canonical_json({"name":title,"author":artist,
@@ -107,7 +111,7 @@ def build_export(repository, store, decoder, *, project_id, expected_revision, t
     report={"project_id":project_id,"chart_revision":chart.revision_id,"timing_revision":timing_revision,
         "historical":historical,"profile":plan.profile_id,"game_verified":False,
         "q_offset":str(plan.q_offset),"audio_padding_seconds":str(plan.audio_padding_seconds),"audio_padding_samples":int(samples),
-        "audio_sample_rate":rate,"cover_policy":"generated-solid-v1","demo_policy":"first-15s-canonical-v1",
+        "audio_sample_rate":rate,"cover_policy":"generated-solid-v1","demo_policy":"first-20s-canonical-v2",
         "codec_length_error_samples":{"music":music_error,"demo":demo_error},
         "logical_count":restored.logical_count,"physical_count":restored.physical_count,
         "resources":[{"name":n,"sha256":digest(d),"byte_count":len(d)} for n,d in sorted(resources.items())],

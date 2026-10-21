@@ -21,15 +21,15 @@
     },
     "v4": {
       "manifest": "models/v4/manifest.json",
-      "manifest_sha256": "92ea58a16c60acf39f00ae1f8679dfada11b6b04ba50a84aa19448b9e6dfee5d",
-      "application_version": "0.4.0",
+      "manifest_sha256": "68cc8f73512af87720fb0960efef3c1366a5692592554ae56db4015b058266e0",
+      "application_version": "0.5.0",
       "status": "user_selected_default_strategy"
     },
     "v5": {
       "manifest": "models/v5/manifest.json",
       "application_version": "0.5.0",
       "status": "optional_strategy",
-      "manifest_sha256": "9cca1783a9fb5327c4de84c61b1738d4c67272863aa7c10c564939453d034932"
+      "manifest_sha256": "297da04aa84632abde1ace933ea026a5eab61d40aa8d0ae055b51318bac514e2"
     }
   },
   "strategies": {
@@ -37,31 +37,31 @@
       "manifest": "recipes/strategies/r2.json",
       "weight_model": "v2",
       "status": "user_selected_playtest_strategy",
-      "manifest_sha256": "661cb3ffc5c70ebfc23a4d9a3153f0a9d7ac1a61b797001230cb73cf90c8943a"
+      "manifest_sha256": "08fb79225355db8a86253e74f58d65116e5ab7bfcd2221911b121d8ffa6cd66a"
     },
     "v2": {
       "manifest": "recipes/strategies/v2.json",
       "weight_model": "v2",
       "status": "user_selected_playtest_strategy",
-      "manifest_sha256": "706a23a2849d556d0a6758b144e6be0e6fcb14a8eea5c2232f42497aafdd181b"
+      "manifest_sha256": "7ed4722a9c0af2d70d8e40161c9b480c73cb546592d5bd3e60fa4b080b6ea6ca"
     },
     "v3": {
       "manifest": "recipes/strategies/v3.json",
       "weight_model": "v3",
       "status": "user_selected_playtest_strategy",
-      "manifest_sha256": "f2f77f16114f978a432b1a99a991ab104fe306ebfa5cfea4f0c121c031119f04"
+      "manifest_sha256": "1df734ac57f5e33999346373e4f0bc9f827ee8e4847190dd491438ac7871741e"
     },
     "v4": {
       "manifest": "recipes/strategies/v4.json",
       "weight_model": "v3",
       "status": "user_selected_default_strategy",
-      "manifest_sha256": "c9764e30266367615bbeb9e5f55476038004d02239dedfe09ef35d0907c56727"
+      "manifest_sha256": "1718f5c5916d0ce6af2da24e4ed2cc42d865e6dcfcb846f151820a95a0238ff2"
     },
     "v5": {
       "manifest": "recipes/strategies/v5.json",
       "weight_model": "v3",
       "status": "optional_strategy",
-      "manifest_sha256": "1b5cf1e11806dabd3bef19e2da93f0a8fa205122e7f2be096483fb0a5c30d67a"
+      "manifest_sha256": "e72f69f61c11126097e3b45290170329ef3066437eba86d526b2bc01322c1423"
     }
   },
   "current_recipe": null,

@@ -5,7 +5,7 @@
   "parent_manifest": "models/v3/manifest.json",
   "parent_manifest_sha256": "e5afe3ad1fe4d12b4558672b66393975d75f3a785b1b1e68f939f04e6d0e795c",
   "base_strategy": "recipes/strategies/v4.json",
-  "base_strategy_sha256": "c9764e30266367615bbeb9e5f55476038004d02239dedfe09ef35d0907c56727",
+  "base_strategy_sha256": "1718f5c5916d0ce6af2da24e4ed2cc42d865e6dcfcb846f151820a95a0238ff2",
   "postprocessing": {
     "prior_path": "models/v3/weights/run-prior.json",
     "prior_sha256": "6a27352cb2c0f9d6fc97f8f06d5742274d8c959a9fd5863fffad96568b875558",
@@ -92,10 +92,10 @@
         "sha256": "4fe3c573cd973af8ef4379cee8f211710ebbd22c3bb5463c3dd431345a985839"
       },
       "tools/studio_generate.py": {
-        "sha256": "c4c0269eb13eaeb4c1b0d4bc65d4384af1896cd1f81b4e38fe2fc5b72adc3dce"
+        "sha256": "ef6ffd3593c9b67179854a4197470249308f5828b9eeb0d42c87f13ef1a1f1e7"
       },
       "tools/studio_generate_v5.py": {
-        "sha256": "14551c743dca0d836e69cabd59e389827f842284bd5c23d78d0ce7334e034e0d"
+        "sha256": "35280667a85d59e851223870eb081fc7cc4251dda1ce4742efa3084b201cb9c6"
       }
     }
   }

@@ -92,7 +92,7 @@
         "sha256": "4fe3c573cd973af8ef4379cee8f211710ebbd22c3bb5463c3dd431345a985839"
       },
       "tools/studio_generate.py": {
-        "sha256": "c4c0269eb13eaeb4c1b0d4bc65d4384af1896cd1f81b4e38fe2fc5b72adc3dce"
+        "sha256": "ef6ffd3593c9b67179854a4197470249308f5828b9eeb0d42c87f13ef1a1f1e7"
       }
     }
   },
@@ -105,6 +105,6 @@
     "storage_step_seconds": 0.001,
     "model_weights_changed": false
   },
-  "application_version": "0.4.0",
+  "application_version": "0.5.0",
   "strategy_manifest": "recipes/strategies/v4.json"
 }
