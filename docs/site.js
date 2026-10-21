@@ -24,7 +24,7 @@ document.querySelector('.brand').addEventListener('click', event => {
   event.preventDefault();
   go(0);
 });
-document.querySelector('.return-home').addEventListener('click', () => go(0));
+// The brand returns home; all action buttons lead to the open-source repository.
 addEventListener('hashchange', fromHash);
 fromHash();
 
